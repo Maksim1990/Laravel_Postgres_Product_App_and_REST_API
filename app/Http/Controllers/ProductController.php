@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Category;
 use App\Http\Requests\ProductCreateRequest;
 use App\Product;
 use Illuminate\Http\Request;
@@ -14,14 +15,30 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products=Product::where('user_id',Auth::id())->get();
-        return view('products.index',compact('products'));
+        $this->removeDeprecatedAttachments();
+
+        $products = Product::where('user_id', Auth::id())->get();
+        return view('products.index', compact('products'));
     }
 
     public function import($type)
     {
 
         return view('products.import', compact('type'));
+    }
+
+    public function removeDeprecatedAttachments()
+    {
+        $old_attachments = Attachment::where('product_id', 0)->get();
+        if(!empty($old_attachments)){
+            foreach ($old_attachments as $attachment){
+                if (file_exists(storage_path('/app/public/'.$attachment->path))) {
+                    unlink(storage_path('/app/public/'.$attachment->path));
+                }
+                $attachment->delete();
+            }
+
+        }
     }
 
     public function upload()
@@ -32,21 +49,22 @@ class ProductController extends Controller
 
     public function create()
     {
-
+        $this->removeDeprecatedAttachments();
         return view('products.create');
     }
 
     public function edit($id)
     {
-        $product=Product::where('user_id',Auth::id())->where('id',$id)->first();
-        return view('products.edit',compact('product'));
+        $this->removeDeprecatedAttachments();
+        $product = Product::where('user_id', Auth::id())->where('id', $id)->first();
+        return view('products.edit', compact('product'));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \Illuminate\Http\Request $request
+     * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -70,11 +88,42 @@ class ProductController extends Controller
         $input['product_code'] = "FYUFUYFY";
 
 
-        Product::create($input);
+        $product=Product::create($input);
+
+        $attachments = Attachment::where('product_id', 0)->get();
+        if(!empty($attachments)){
+            foreach ($attachments as $attachment){
+                $attachment->update([
+                    'product_id'=>$product->id
+                ]);
+            }
+
+        }
 
         return redirect()->route('index');
 
 
+    }
+
+
+    public function destroy($id)
+    {
+        $product=Product::findOrFail($id);
+        Category::where('product_id',$product->id)->delete();
+
+        if(!empty($product->attachments)){
+            foreach ($product->attachments as $attachment){
+                if (file_exists(storage_path('/app/public/'.$attachment->path))) {
+                    unlink(storage_path('/app/public/'.$attachment->path));
+                }
+                $attachment->delete();
+            }
+        }
+
+
+        Session::flash('product_change','The product has been successfully deleted!');
+        $product->delete();
+        return redirect()->route('index');
     }
 
     public function importFile($type, Request $request)

@@ -49,10 +49,13 @@
 @endsection
 @section ('scripts')
     <script>
+        @if(Session::has('product_change'))
         new Noty({
-            type: 'success',
+            type: 'warning',
             layout: 'topRight',
-            text: 'Images updated!'
+            text: '{{session('product_change')}}'
+
         }).show();
+        @endif
     </script>
 @endsection

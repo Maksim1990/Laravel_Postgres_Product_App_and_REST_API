@@ -34,6 +34,11 @@
                 </div>
                 {!! Form::submit('Update product',['class'=>'btn btn-warning']) !!}
                 {!! Form::close() !!}
+                {{ Form::open(['method' =>'DELETE' , 'action' => ['ProductController@destroy',$product->id]])}}
+
+                {!! Form::submit('Delete product',['class'=>'btn btn-danger']) !!}
+
+                {!! Form::close() !!}
                 @include('includes.formErrors')
             </div>
 

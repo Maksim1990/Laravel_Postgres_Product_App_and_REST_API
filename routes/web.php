@@ -17,6 +17,7 @@ Auth::routes();
 
 //Route::get('/home', 'HomeController@index')->name('home');
 Route::resource('/product', 'ProductController');
+Route::resource('/attachment', 'AttachmentController');
 Route::get('/', 'ProductController@index')->name('index');
 Route::get('/upload', 'ProductController@upload')->name('upload');
 Route::get('/create', 'ProductController@create')->name('create');

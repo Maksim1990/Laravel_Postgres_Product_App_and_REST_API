@@ -21,22 +21,23 @@ class AttachmentController extends Controller
                 $name = time() ."_".$file->getClientOriginalName();
 
                 request()->file('file')->storeAs(
-                    'public/upload/photos/', $name
+                    'public/upload/images/'. Auth::id(), $name
                 );
 
-                Attachment::create([
+                $attachment=Attachment::create([
                     'user_id' => Auth::id(),
+                    'product_id' => $request->product_id,
                     'name' => $name,
                     'size' => $file->getClientSize(),
                     'extension' => $extension,
-                    'path' => 'upload/' . Auth::id() . '/photos/' . $name
+                    'path' => 'upload/images/' . Auth::id() . '/' . $name
                 ]);
 
             } else {
-                $result = trans('images::messages.image_limit')." 2 MB!";
+                $result = "Max allowed limit for file is 2 MB!";
             }
         } else {
-            $result = trans('images::messages.image_format_error',['formats'=>implode(",", $arrAllowedExtension)]);
+            $result = 'Error of file format. Only following formats are allowed: '.['formats'=>implode(",", $arrAllowedExtension)];
         }
 
         echo $result;

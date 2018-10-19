@@ -1,5 +1,7 @@
 @extends('layouts.main')
-
+@section('styles')
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.css" rel="stylesheet">
+@endsection
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
@@ -34,9 +36,39 @@
                 </div>
                 {!! Form::submit('Create product',['class'=>'btn btn-warning']) !!}
                 {!! Form::close() !!}
+                <div class="container">
+                    {!! Form::open(['method'=>'POST','action'=>['AttachmentController@store','userId'=>Auth::id()],'id'=>'uploadForm', 'class'=>'dropzone'])!!}
+
+                    {{ Form::hidden('user_id', Auth::id() ) }}
+                    {{ Form::hidden('product_id', 0 ) }}
+                    {!! Form::close() !!}
+                </div>
                 @include('includes.formErrors')
             </div>
 
         </div>
     </div>
+@endsection
+@section('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.js"></script>
+    <script>
+        Dropzone.options.uploadForm = {
+            dataType: "json",
+            success: function(file, response){
+                if (response == "success") {
+                    new Noty({
+                        type: 'success',
+                        layout: 'topRight',
+                        text: 'Attachments updated!'
+                    }).show();
+                }else{
+                    new Noty({
+                        type: 'error',
+                        layout: 'bottomLeft',
+                        text: 'There is error happened while uploading file!'
+                    }).show();
+                }
+            }
+        };
+    </script>
 @endsection
