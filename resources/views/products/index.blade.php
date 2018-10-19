@@ -27,7 +27,7 @@
                                 @foreach($products as $product)
                             <tr>
                                 <td>{{$product->product_code}}</td>
-                                <td>{{$product->name}}</td>
+                                <td><a href="{{route('product.show',['id'=>$product->id])}}">{{$product->name}}</a></td>
                                 <td>{{$product->brand}}</td>
                                 <td>{{$product->size}}</td>
                                 <td>{{$product->case_count}}</td>

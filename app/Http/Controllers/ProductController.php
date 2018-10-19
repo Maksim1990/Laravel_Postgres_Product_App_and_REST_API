@@ -47,6 +47,12 @@ class ProductController extends Controller
         return view('products.upload');
     }
 
+    public function show($id)
+    {
+        $product=Product::findOrFail($id);
+        return view('products.show',compact('product'));
+    }
+
     public function create()
     {
         $this->removeDeprecatedAttachments();
