@@ -92,6 +92,15 @@ class AttachmentController extends Controller
             if(file_exists(public_path().$attachment->path)){
                 Croppa::delete($attachment->path);
             }
+
+            //-- Delete video thumbnails
+            if(in_array($attachment->extension,Config::VIDEO_EXTENSIONS)){
+                $thumbnail=getVideoThumbnail($attachment->name);
+
+                if(!empty($thumbnail) && file_exists(public_path().$thumbnail)){
+                    unlink(public_path().$thumbnail);
+                }
+            }
             $attachment->delete();
         }
 

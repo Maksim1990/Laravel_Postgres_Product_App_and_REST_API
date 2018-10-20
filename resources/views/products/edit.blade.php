@@ -20,7 +20,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             -ms-transform: translate(-50%, -50%);
-            background-color: #555;
+            background-color: #ab1f25;
             color: white;
             font-size: 12px;
             padding: 5px 5px;
@@ -78,13 +78,10 @@
                 <div>
                     @if(count($product->attachments)>0)
                         @foreach($product->attachments as $attachment)
-                            @if(in_array($attachment->extension,\App\Config\Config::IMAGES_EXTENSIONS))
                             <div class="attachment" id="attachment_block_{{$attachment->id}}">
-                                {{--<img src="{{asset('/storage/'.$attachment->path)}}" style="width:100%">--}}
-                                <img src="{{$arrThumbnails[$attachment->id]}}" style="width:100%">
+                                <img src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}" style="width:100%">
                                 <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal" data-target="#deleteModal_{{$attachment->id}}">X</button>
                             </div>
-                            @endif
                             @include('partials.modal_attachment_delete',['attachment'=>$attachment])
                         @endforeach
                     @else

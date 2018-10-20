@@ -1,7 +1,7 @@
 
 <!-- Show Modal -->
 <div class="modal" id="modal_{{$attachment->id}}">
-    <div class="modal-dialog">
+    <div class="modal-dialog w3-center">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">{{$attachment->name}}</h4>
@@ -13,6 +13,12 @@
                 @if(in_array($attachment->extension,\App\Config\Config::IMAGES_EXTENSIONS))
                     <img src="{{asset($attachment->path)}}"
                          style="width:100%">
+                @elseif(in_array($attachment->extension,\App\Config\Config::VIDEO_EXTENSIONS))
+                    <video controls
+                           preload="auto" width="840" height="464">
+                        <source src="{{ asset($attachment->path) }}" type='video/mp4'>
+                        <p>To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
+                    </video>
                 @endif
             </div>
             <div class="modal-footer">

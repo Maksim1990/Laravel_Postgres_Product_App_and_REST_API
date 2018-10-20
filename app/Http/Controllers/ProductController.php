@@ -37,6 +37,14 @@ class ProductController extends Controller
                 if(file_exists(public_path().$attachment->path)){
                     Croppa::delete($attachment->path);
                 }
+
+                //-- Delete video thumbnails
+                if(in_array($attachment->extension,Config::VIDEO_EXTENSIONS)){
+                    $thumbnail=getVideoThumbnail($attachment->name);
+                    if(file_exists(public_path().$thumbnail)){
+                        unlink(public_path().$thumbnail);
+                    }
+                }
                 $attachment->delete();
             }
 
@@ -52,7 +60,17 @@ class ProductController extends Controller
     public function show($id)
     {
         $product=Product::findOrFail($id);
-        return view('products.show',compact('product'));
+        $arrThumbnails=array();
+        if(count($product->attachments)>0){
+            foreach ($product->attachments as $attachment){
+                if($attachment->type=='image'){
+                    $arrThumbnails[$attachment->id]=Croppa::url('/uploads/'.$attachment->name, 400, 400, ['resize']);
+                }elseif ($attachment->type=='video'){
+                    $arrThumbnails[$attachment->id]=getVideoThumbnail($attachment->name);
+                }
+            }
+        }
+        return view('products.show',compact('product','arrThumbnails'));
     }
 
     public function create()
@@ -63,8 +81,6 @@ class ProductController extends Controller
 
     public function edit($id)
     {
-
-        getVideoThumbnail('ddd');
 
         $this->removeDeprecatedAttachments();
         $product = Product::where('user_id', Auth::id())->where('id', $id)->first();
@@ -78,7 +94,6 @@ class ProductController extends Controller
                 }
             }
         }
-        dd($arrThumbnails);
         return view('products.edit', compact('product','arrThumbnails'));
     }
 
@@ -102,8 +117,6 @@ class ProductController extends Controller
 
     public function store(ProductCreateRequest $request)
     {
-
-
         $input = $request->all();
         $user = Auth::user();
         $input['user_id'] = $user->id;
@@ -137,6 +150,14 @@ class ProductController extends Controller
             foreach ($product->attachments as $attachment){
                 if(file_exists(public_path().$attachment->path)){
                     Croppa::delete($attachment->path);
+                }
+
+                //-- Delete video thumbnails
+                if(in_array($attachment->extension,Config::VIDEO_EXTENSIONS)){
+                    $thumbnail=getVideoThumbnail($attachment->name);
+                    if(file_exists(public_path().$thumbnail)){
+                        unlink(public_path().$thumbnail);
+                    }
                 }
                 $attachment->delete();
             }
