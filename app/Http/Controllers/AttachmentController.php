@@ -62,7 +62,8 @@ class AttachmentController extends Controller
                 $width = 400;
                 $height = 400;
                 $second=2;
-                $thumbnailName=$name.'_'.$width.'x'.$height.'.jpg';
+                $arrName=explode(".",$name);
+                $thumbnailName=$arrName[0].'_'.$width.'x'.$height.'.jpg';
 
                 VideoThumbnail::createThumbnail(public_path('uploads/' . $name), public_path('uploads/thumbnails/'), $thumbnailName, $second, $width, $height);
 

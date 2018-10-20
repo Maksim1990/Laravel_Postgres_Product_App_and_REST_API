@@ -35,7 +35,10 @@
         "psr-4": {
             "App\\": "app/",
             "App\\Config\\": "app/Config/"
-        }
+        },
+        "files": [
+            "app/Config/CustomMethods.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

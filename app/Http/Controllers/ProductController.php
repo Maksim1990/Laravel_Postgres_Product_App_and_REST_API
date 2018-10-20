@@ -63,14 +63,22 @@ class ProductController extends Controller
 
     public function edit($id)
     {
+
+        getVideoThumbnail('ddd');
+
         $this->removeDeprecatedAttachments();
         $product = Product::where('user_id', Auth::id())->where('id', $id)->first();
         $arrThumbnails=array();
         if(count($product->attachments)>0){
             foreach ($product->attachments as $attachment){
-                $arrThumbnails[$attachment->id]=Croppa::url('/uploads/'.$attachment->name, 400, 400, ['resize']);
+                if($attachment->type=='image'){
+                    $arrThumbnails[$attachment->id]=Croppa::url('/uploads/'.$attachment->name, 400, 400, ['resize']);
+                }elseif ($attachment->type=='video'){
+                    $arrThumbnails[$attachment->id]=getVideoThumbnail($attachment->name);
+                }
             }
         }
+        dd($arrThumbnails);
         return view('products.edit', compact('product','arrThumbnails'));
     }
 
