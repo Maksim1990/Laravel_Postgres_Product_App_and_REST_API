@@ -78,10 +78,13 @@
                 <div>
                     @if(count($product->attachments)>0)
                         @foreach($product->attachments as $attachment)
+                            @if(in_array($attachment->extension,\App\Config\Config::IMAGES_EXTENSIONS))
                             <div class="attachment" id="attachment_block_{{$attachment->id}}">
-                                <img src="{{asset('/storage/'.$attachment->path)}}" alt="Snow" style="width:100%">
-                                <button class="btn delete" id="{{$attachment->id}}">X</button>
+                                <img src="{{asset('/storage/'.$attachment->path)}}" style="width:100%">
+                                <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal" data-target="#deleteModal_{{$attachment->id}}">X</button>
                             </div>
+                            @endif
+                            @include('partials.modal_attachment_delete',['attachment'=>$attachment])
                         @endforeach
                     @else
                         No attachments found
@@ -123,11 +126,11 @@
             }
         };
 
-        //-- RESET CACHE
-        $('.delete').click(function () {
-            var attachment_id = $(this).attr('id');
-            var conf = confirm("Do you really want to delete this attachment?");
-            if (conf) {
+        //-- Delete attachment
+        $("button[id^='delete_attachment_']").click(function () {
+            var attachment_id = $(this).attr('id').replace('delete_attachment_','');
+
+            $('#deleteModal_'+attachment_id).modal('toggle');
                 var url = '{{ route('delete_attachment_ajax') }}';
                 $.ajax({
                     method: 'POST',
@@ -162,8 +165,6 @@
                         $("div#divLoading").removeClass('show');
                     }
                 });
-            }
-
         });
     </script>
 @endsection
