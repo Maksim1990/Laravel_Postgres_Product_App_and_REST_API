@@ -1,5 +1,40 @@
 @extends('layouts.main')
+@section('styles')
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.css" rel="stylesheet">
+    <style>
+        .attachment {
+            position: relative;
+            width: 50%;
+            max-width: 150px;
+            display: inline-block;
+        }
 
+        .attachment img {
+            width: 100%;
+            height: auto;
+        }
+
+        .attachment .btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+            background-color: #555;
+            color: white;
+            font-size: 12px;
+            padding: 5px 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .attachment .btn:hover {
+            background-color: black;
+        }
+    </style>
+@endsection
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
@@ -39,9 +74,96 @@
                 {!! Form::submit('Delete product',['class'=>'btn btn-danger']) !!}
 
                 {!! Form::close() !!}
+                <a href="{{route('index')}}" class="btn btn-info">Back to products</a>
+                <div>
+                    @if(count($product->attachments)>0)
+                        @foreach($product->attachments as $attachment)
+                            <div class="attachment" id="attachment_block_{{$attachment->id}}">
+                                <img src="{{asset('/storage/'.$attachment->path)}}" alt="Snow" style="width:100%">
+                                <button class="btn delete" id="{{$attachment->id}}">X</button>
+                            </div>
+                        @endforeach
+                    @else
+                        No attachments found
+                    @endif
+                </div>
+                <div class="container">
+                    {!! Form::open(['method'=>'POST','action'=>['AttachmentController@store','userId'=>Auth::id()],'id'=>'uploadForm', 'class'=>'dropzone'])!!}
+
+                    {{ Form::hidden('user_id', Auth::id() ) }}
+                    {{ Form::hidden('product_id', $product->id ) }}
+                    {!! Form::close() !!}
+                </div>
                 @include('includes.formErrors')
             </div>
 
         </div>
     </div>
+@endsection
+@section('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.js"></script>
+    <script>
+        var token = '{{\Illuminate\Support\Facades\Session::token()}}';
+        Dropzone.options.uploadForm = {
+            dataType: "json",
+            success: function (file, response) {
+                if (response == "success") {
+                    new Noty({
+                        type: 'success',
+                        layout: 'topRight',
+                        text: 'Attachments updated!'
+                    }).show();
+                } else {
+                    new Noty({
+                        type: 'error',
+                        layout: 'bottomLeft',
+                        text: 'There is error happened while uploading file!'
+                    }).show();
+                }
+            }
+        };
+
+        //-- RESET CACHE
+        $('.delete').click(function () {
+            var attachment_id = $(this).attr('id');
+            var conf = confirm("Do you really want to delete this attachment?");
+            if (conf) {
+                var url = '{{ route('delete_attachment_ajax') }}';
+                $.ajax({
+                    method: 'POST',
+                    url: url,
+                    dataType: "json",
+                    data: {
+                        attachment_id: attachment_id,
+                        _token: token
+                    }, beforeSend: function () {
+                        //-- Show loading image while execution of ajax request
+                        $("div#divLoading").addClass('show');
+                    },
+                    success: function (data) {
+                        if (data['result'] === "success") {
+                            new Noty({
+                                type: 'success',
+                                layout: 'topRight',
+                                text: 'Attachment was successfully deleted!'
+                            }).show();
+
+                            //-- Hide visually attachment
+                            $('#attachment_block_' + attachment_id).hide();
+                        } else {
+                            new Noty({
+                                type: 'error',
+                                layout: 'bottomLeft',
+                                text: data['error']
+                            }).show();
+                        }
+
+                        //-- Hide loading image
+                        $("div#divLoading").removeClass('show');
+                    }
+                });
+            }
+
+        });
+    </script>
 @endsection

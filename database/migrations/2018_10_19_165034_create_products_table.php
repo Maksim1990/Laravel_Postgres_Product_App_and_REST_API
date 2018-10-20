@@ -20,7 +20,7 @@ class CreateProductsTable extends Migration
             $table->string('name');
             $table->string('description')->nullable();
             $table->string('brand')->nullable();
-            $table->integer('size')->unsigned()->nullable();
+            $table->string('size')->unsigned()->nullable();
             $table->integer('case_count')->unsigned()->nullable();
             $table->timestamps();
         });

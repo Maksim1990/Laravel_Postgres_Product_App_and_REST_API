@@ -28,5 +28,8 @@ Route::group(['middleware' => 'admin'], function () {
     Route::get('/import/{type}', 'ProductController@import')->name('import');
     Route::post('/import/{type}', 'ProductController@importFile')->name('import_file');
     Route::post('/upload/files', 'ProductController@uploadFiles')->name('upload_files');
+
+
+    Route::post('/delete_attachment_ajax', 'AttachmentController@ajaxDeleteAttachment')->name('delete_attachment_ajax');
 });
 
