@@ -1,9 +1,32 @@
 @extends('layouts.main')
 
 @section('content')
+    @php
+    $arrImport=session('arrImport')?session('arrImport'):'';
+    $arrErrors=session('arrErrors')?session('arrErrors'):'';
+        @endphp
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-10">
+                @if(isset($arrImport['intImportedLines']) && !empty($arrImport['intImportedLines']))
+                    <div class="alert alert-success">
+                        <strong>Success!</strong> Imported {{$arrImport['intImportedLines']}} lines.
+                    </div>
+                @endif
+                    @if(!empty($arrErrors))
+                        <div class="alert alert-danger">
+                            <strong>Error!</strong>
+                            <ul>
+                                @foreach($arrErrors as $key=>$value)
+                                    <li>
+                                        Line {{$key}} wasn't imported because {{$value}}.
+                                    </li>
+                                    @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+
                 <div>
                     <a href="{{route('create')}}" class="btn btn-info">Create new product</a>
                     <a href="{{route('import',['type'=>'csv'])}}" class="btn btn-success">Import products</a>
