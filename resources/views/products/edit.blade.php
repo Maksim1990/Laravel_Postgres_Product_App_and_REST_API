@@ -80,7 +80,8 @@
                         @foreach($product->attachments as $attachment)
                             @if(in_array($attachment->extension,\App\Config\Config::IMAGES_EXTENSIONS))
                             <div class="attachment" id="attachment_block_{{$attachment->id}}">
-                                <img src="{{asset('/storage/'.$attachment->path)}}" style="width:100%">
+                                {{--<img src="{{asset('/storage/'.$attachment->path)}}" style="width:100%">--}}
+                                <img src="{{$arrThumbnails[$attachment->id]}}" style="width:100%">
                                 <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal" data-target="#deleteModal_{{$attachment->id}}">X</button>
                             </div>
                             @endif
@@ -120,7 +121,7 @@
                     new Noty({
                         type: 'error',
                         layout: 'bottomLeft',
-                        text: 'There is error happened while uploading file!'
+                        text: response
                     }).show();
                 }
             }

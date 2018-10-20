@@ -10,4 +10,8 @@ class Config extends Model
         'jpg','jpeg','png'
     );
 
+    const VIDEO_EXTENSIONS = array(
+        'mp4'
+    );
+
 }

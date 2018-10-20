@@ -11,7 +11,7 @@
             </div>
             <div class="modal-body">
                 @if(in_array($attachment->extension,\App\Config\Config::IMAGES_EXTENSIONS))
-                    <img src="{{asset('/storage/'.$attachment->path)}}"
+                    <img src="{{asset($attachment->path)}}"
                          style="width:100%">
                 @endif
             </div>

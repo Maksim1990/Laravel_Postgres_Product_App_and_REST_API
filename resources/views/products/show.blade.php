@@ -85,7 +85,7 @@
                                     <div class="col-sm-3">
                                         @if(in_array($attachment->extension,\App\Config\Config::IMAGES_EXTENSIONS))
                                             <div class="attachment" id="attachment_block_{{$attachment->id}}">
-                                                <img src="{{asset('/storage/'.$attachment->path)}}" style="width:100%"
+                                                <img src="{{\Croppa::url($attachment->path, 400, 400, ['resize'])}}" style="width:100%"
                                                      data-toggle="modal" data-target="#modal_{{$attachment->id}}">
                                                 <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal" data-target="#deleteModal_{{$attachment->id}}">X</button>
                                             </div>

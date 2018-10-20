@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Rap2hpoutre\FastExcel\FastExcel;
 use App\Attachment;
+use Croppa;
 
 class ProductController extends Controller
 {
@@ -33,8 +34,8 @@ class ProductController extends Controller
         $old_attachments = Attachment::where('product_id', 0)->get();
         if(!empty($old_attachments)){
             foreach ($old_attachments as $attachment){
-                if (file_exists(storage_path('/app/public/'.$attachment->path))) {
-                    unlink(storage_path('/app/public/'.$attachment->path));
+                if(file_exists(public_path().$attachment->path)){
+                    Croppa::delete($attachment->path);
                 }
                 $attachment->delete();
             }
@@ -64,7 +65,13 @@ class ProductController extends Controller
     {
         $this->removeDeprecatedAttachments();
         $product = Product::where('user_id', Auth::id())->where('id', $id)->first();
-        return view('products.edit', compact('product'));
+        $arrThumbnails=array();
+        if(count($product->attachments)>0){
+            foreach ($product->attachments as $attachment){
+                $arrThumbnails[$attachment->id]=Croppa::url('/uploads/'.$attachment->name, 400, 400, ['resize']);
+            }
+        }
+        return view('products.edit', compact('product','arrThumbnails'));
     }
 
     /**
@@ -120,8 +127,8 @@ class ProductController extends Controller
 
         if(!empty($product->attachments)){
             foreach ($product->attachments as $attachment){
-                if (file_exists(storage_path('/app/public/'.$attachment->path))) {
-                    unlink(storage_path('/app/public/'.$attachment->path));
+                if(file_exists(public_path().$attachment->path)){
+                    Croppa::delete($attachment->path);
                 }
                 $attachment->delete();
             }
