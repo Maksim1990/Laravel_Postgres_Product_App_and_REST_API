@@ -7,6 +7,7 @@ use App\Config\Config;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Croppa;
+use Pawlox\VideoThumbnail\Facade\VideoThumbnail;
 
 class AttachmentController extends Controller
 {
@@ -57,6 +58,15 @@ class AttachmentController extends Controller
 
                 //-- Temporary upload for public derictory in order generate thumbnails
                 $file->move('uploads', $name);
+
+                $width = 400;
+                $height = 400;
+                $second=2;
+                $thumbnailName=$name.'_'.$width.'x'.$height.'.jpg';
+
+                VideoThumbnail::createThumbnail(public_path('uploads/' . $name), public_path('uploads/thumbnails/'), $thumbnailName, $second, $width, $height);
+
+
             } else {
                 $result = "Max allowed limit for file is 50 MB!";
             }
