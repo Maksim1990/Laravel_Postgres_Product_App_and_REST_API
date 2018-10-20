@@ -106,13 +106,11 @@ class ProductController extends Controller
      */
     public function update(ProductCreateRequest $request, $id)
     {
-
-
         $product = Product::findOrFail($id);
         $input = $request->all();
+        $input['barcode']=generateBarcodeNumber(12);;
         $product->update($input);
         return redirect()->route('index');
-
     }
 
     public function store(ProductCreateRequest $request)
@@ -120,7 +118,7 @@ class ProductController extends Controller
         $input = $request->all();
         $user = Auth::user();
         $input['user_id'] = $user->id;
-        $input['product_code'] = "FYUFUYFY";
+        $input['barcode'] = generateBarcodeNumber(12);
 
 
         $product=Product::create($input);

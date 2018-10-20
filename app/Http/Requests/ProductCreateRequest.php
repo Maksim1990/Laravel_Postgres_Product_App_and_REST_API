@@ -25,8 +25,8 @@ class ProductCreateRequest extends FormRequest
     {
         return [
             'name'=>'required',
-            'case_count'=>'required',
-            'size'=>'required',
+            'case_count'=>'required|integer',
+            'size'=>'required|integer',
             'brand'=>'required'
         ];
     }

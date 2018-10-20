@@ -57,12 +57,12 @@
 
                     <div class="group-form">
                         {!! Form::label('size','Size:') !!}
-                        {!! Form::text('size', null, ['class'=>'form-control']) !!}
+                        {!! Form::number('size', null, ['class'=>'form-control']) !!}
                     </div>
 
                     <div class="group-form">
                         {!! Form::label('case_count','Case count:') !!}
-                        {!! Form::text('case_count', null, ['class'=>'form-control']) !!}
+                        {!! Form::number('case_count', null, ['class'=>'form-control']) !!}
                     </div>
 
 

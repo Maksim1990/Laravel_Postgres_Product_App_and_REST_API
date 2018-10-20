@@ -173,7 +173,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Collective\Html\HtmlServiceProvider::class,
-        Pawlox\VideoThumbnail\VideoThumbnailServiceProvider::class
+        Pawlox\VideoThumbnail\VideoThumbnailServiceProvider::class,
+        Milon\Barcode\BarcodeServiceProvider::class,
 
     ],
 
@@ -226,7 +227,9 @@ return [
 
         'Form' => Collective\Html\FormFacade::class,
         'Html' => Collective\Html\HtmlFacade::class,
-        'VideoThumbnail' => Pawlox\VideoThumbnail\Facade\VideoThumbnail::class
+        'VideoThumbnail' => Pawlox\VideoThumbnail\Facade\VideoThumbnail::class,
+        'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
+        'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
 
     ],
 

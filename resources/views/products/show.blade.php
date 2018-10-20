@@ -77,7 +77,11 @@
                                 </tr>
                             </table>
                         </div>
-                        <div class="col-sm-12">
+                        <div class="col-sm-6 w3-margin-top w3-center">
+                            {!! \DNS1D::getBarcodeSVG($product->barcode, "EAN13",3,103,"black", true) !!}<br>
+                            {{$product->barcode}}
+                        </div>
+                        <div class="col-sm-12 w3-center w3-margin-top">
                             <p>{{$product->description}}</p>
                         </div>
                         <div class="col-sm-12">
