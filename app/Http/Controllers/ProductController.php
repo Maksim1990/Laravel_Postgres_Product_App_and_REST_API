@@ -6,6 +6,7 @@ use App\Category;
 use App\Config\Config;
 use App\Http\Requests\ProductCreateRequest;
 use App\Product;
+use App\ProductCategoryPivot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -94,12 +95,56 @@ class ProductController extends Controller
     public function store(ProductCreateRequest $request)
     {
         $input = $request->all();
+        $linkedCategories = $request->categories_form;
+        unset($input['categories_form']);
+        $arrCategories=[];
+        if(!empty($linkedCategories)){
+            $arrCategories=explode(";",$linkedCategories);
+        }
+
         $user = Auth::user();
         $input['user_id'] = $user->id;
         $input['barcode'] = generateBarcodeNumber(12);
 
-
+        $maxID=Product::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
+        $input['id']=$maxID!=null?$maxID->id+1:1;
         $product = Product::create($input);
+
+
+        if(!empty($arrCategories)){
+            foreach ($arrCategories as $categoryName){
+                $categoryData=explode(":",$categoryName);
+                foreach ($categoryData as $key=>$cat){
+                    $categoryItem = Category::where('name',$cat)->first();
+                    if($key>0){
+                        $parentCategory=Category::where('name',$categoryData[0])->first();
+                    }
+                    if($categoryItem==null){
+                        $maxID=Category::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
+                        $categoryItem=Category::create([
+                            'id'=>$maxID!=null?$maxID->id+1:1,
+                            'user_id'=> Auth::id(),
+                            'name'=> $cat,
+                            'parent'=> $key==0?$key:$parentCategory->id,
+                        ]);
+                    }
+
+                    if($key==(count($categoryData)-1)){
+                        $categoryLink=ProductCategoryPivot::where('product_id',$product->id)->where('category_id',$categoryItem->id)->first();
+                        $maxID=ProductCategoryPivot::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
+                        if($categoryLink===null){
+                            ProductCategoryPivot::create([
+                                'id'=>$maxID!=null?$maxID->id+1:1,
+                                'product_id'=>$product->id,
+                                'category_id'=>$categoryItem->id,
+                            ]);
+                        }
+                    }
+                }
+
+            }
+        }
+
 
         $attachments = Attachment::where('product_id', 0)->get();
         if (!empty($attachments)) {
@@ -200,7 +245,9 @@ class ProductController extends Controller
 
                             if ($blnStatus) {
                                 $arrImport['intImportedLines']++;
+                                $maxID=Product::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
                                 $product = Product::create([
+                                    'id'=>$maxID!=null?$maxID->id+1:1,
                                     'user_id' => Auth::id(),
                                     'name' => $arrLine['name'],
                                     'barcode' => $arrLine['barcode'],
@@ -226,7 +273,9 @@ class ProductController extends Controller
                                     }
 
                                     if ($blnUploadStatus) {
+                                        $maxID=Attachment::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
                                         Attachment::create([
+                                            'id'=>$maxID!=null?$maxID->id+1:1,
                                             'user_id' => Auth::id(),
                                             'product_id' => $product->id,
                                             'name' => $arrData[count($arrData) - 1],

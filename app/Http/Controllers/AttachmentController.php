@@ -26,8 +26,9 @@ class AttachmentController extends Controller
             if (in_array($extension, Config::IMAGES_EXTENSIONS)) {
                 if (!($file->getClientSize() > 21000000)) {
                     $name = time() . "_" . $file->getClientOriginalName();
-
+                    $maxID=Attachment::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
                     $attachment = Attachment::create([
+                        'id'=>$maxID!=null?$maxID->id+1:1,
                         'user_id' => Auth::id(),
                         'product_id' => $request->product_id,
                         'name' => $name,
@@ -45,8 +46,9 @@ class AttachmentController extends Controller
                 //-- UPLOAD VIDEO CONTENT
                 if (!($file->getClientSize() > 51000000)) {
                     $name = time() . "_" . $file->getClientOriginalName();
-
+                    $maxID=Attachment::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
                     $attachment = Attachment::create([
+                        'id'=>$maxID!=null?$maxID->id+1:1,
                         'user_id' => Auth::id(),
                         'product_id' => $request->product_id,
                         'name' => $name,
