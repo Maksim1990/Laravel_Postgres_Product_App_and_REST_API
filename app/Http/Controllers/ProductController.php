@@ -13,13 +13,35 @@ use Illuminate\Support\Facades\Session;
 use Rap2hpoutre\FastExcel\FastExcel;
 use App\Attachment;
 use Croppa;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::where('user_id', Auth::id())->get();
+        //-- Load products from cache if available
+        $products = Cache::tags(['products_' . Auth::id()])->get('products_list');
+
+        if (!$products) {
+            $products = Product::where('user_id', Auth::id())->get();
+            Cache::tags(['products_' . Auth::id()])->put('products_list', $products, 22 * 60);
+        }else{
+           // dd('FROM CACHE');
+        }
+
         return view('products.index', compact('products'));
+    }
+
+    /**
+     * @param $id
+     * @return string
+     */
+    public function resetCache($id)
+    {
+        //-- Flush cached header menu for current user
+        Cache::tags('products_' . $id)->flush();
+
+        return "Cache was flushed!";
     }
 
     public function import($type)
@@ -110,6 +132,7 @@ class ProductController extends Controller
         if (!empty($arrCategories)) {
             $strCategories = implode(";", $arrCategories);
         }
+
         return view('products.edit', compact('product', 'arrThumbnails', 'loadMainJS', 'strCategories'));
     }
 
@@ -159,6 +182,10 @@ class ProductController extends Controller
 
         $input['barcode'] = generateBarcodeNumber(12);;
         $product->update($input);
+
+        //-- Reset product list cache
+        $this->resetCache(Auth::id());
+
         return redirect('products/'.$product->id);
     }
 
@@ -195,18 +222,21 @@ class ProductController extends Controller
                     'product_id' => $product->id
                 ]);
             }
-
         }
 
+        //-- Reset product list cache
+        $this->resetCache(Auth::id());
+
         return redirect()->route('index');
-
-
     }
 
 
-    public function handleNewCategoryList($product,$arrCategories)
+    /**
+     * @param $product
+     * @param $arrCategories
+     */
+    public function handleNewCategoryList($product, $arrCategories)
     {
-
             foreach ($arrCategories as $categoryName) {
                 $categoryData = explode(":", $categoryName);
                 foreach ($categoryData as $key => $cat) {
@@ -239,10 +269,22 @@ class ProductController extends Controller
         }
     }
 
+    /**
+     * Delete product and relevant content and relations
+     *
+     * @param $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        Category::where('product_id', $product->id)->delete();
+        $categories=Category::where('product_id', $product->id)->get();
+        if(!empty($categories)){
+            foreach ($categories as $category){
+                ProductCategoryPivot::where('category_id',$category->id)->delete();
+                $category->delete();
+            }
+        }
 
         if (!empty($product->attachments)) {
             foreach ($product->attachments as $attachment) {
@@ -379,8 +421,6 @@ class ProductController extends Controller
 
                         return redirect()->route('index');
                     }
-
-
                 }
             }
         }
