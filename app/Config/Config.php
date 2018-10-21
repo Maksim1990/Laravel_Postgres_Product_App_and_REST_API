@@ -14,4 +14,7 @@ class Config extends Model
         'mp4'
     );
 
+    //-- Maximum number of allowed attachments per each product
+    const ATTACHMENTS_ALLOWED=9;
+
 }
