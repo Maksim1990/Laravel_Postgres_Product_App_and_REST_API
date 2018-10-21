@@ -22,7 +22,7 @@ class AttachmentController extends Controller
         $extension = $file->getClientOriginalExtension();
 
         if (in_array($extension, Config::IMAGES_EXTENSIONS)) {
-            if (!($file->getClientSize() > 21000000)) {
+           if (!($file->getClientSize() > 21000000)) {
                 $name = time() . "_" . $file->getClientOriginalName();
 
                 $attachment = Attachment::create([
@@ -37,12 +37,10 @@ class AttachmentController extends Controller
                 //-- Temporary upload for public derictory in order generate thumbnails
                 $file->move('uploads', $name);
             } else {
-                $result = "Max allowed limit for file is 20 MB!";
+                $result = "Max allowed limit for image file is 20 MB!";
             }
-        }
-
-        //-- UPLOAD VIDEO CONTENT
-        if (in_array($extension, Config::VIDEO_EXTENSIONS)) {
+        }elseif(in_array($extension, Config::VIDEO_EXTENSIONS)) {
+            //-- UPLOAD VIDEO CONTENT
             if (!($file->getClientSize() > 51000000)) {
                 $name = time() . "_" . $file->getClientOriginalName();
 
@@ -69,13 +67,12 @@ class AttachmentController extends Controller
 
 
             } else {
-                $result = "Max allowed limit for file is 50 MB!";
+                $result = "Max allowed limit for video file is 50 MB!";
             }
+        }else {
+            $arrFormats=array_merge(Config::IMAGES_EXTENSIONS,Config::VIDEO_EXTENSIONS);
+            $result = 'Error of file format. Only following formats are allowed: '. implode(",", $arrFormats);
         }
-
-//        else {
-//            $result = 'Error of file format. Only following formats are allowed: ' . ['formats' => implode(",", Config::VIDEO_EXTENSIONS)];
-//        }
 
         echo $result;
     }

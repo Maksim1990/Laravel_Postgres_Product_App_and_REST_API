@@ -64,6 +64,7 @@
 
                     </div>
                         </div>
+                        <div class="w3-margin-top w3-margin-bottom">
                         @if(count($product->attachments)>0)
                             @foreach($product->attachments as $attachment)
                                 <div class="attachment" id="attachment_block_{{$attachment->id}}">
@@ -81,7 +82,7 @@
                         @else
                             No attachments found
                         @endif
-
+                        </div>
                     <div class="container">
                         {!! Form::open(['method'=>'POST','action'=>['AttachmentController@store','userId'=>Auth::id()],'id'=>'uploadForm', 'class'=>'dropzone'])!!}
 
