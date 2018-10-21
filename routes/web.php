@@ -28,10 +28,12 @@ Route::group(['middleware' => 'admin'], function () {
     Route::get('/import/{type}', 'ProductController@import')->name('import');
     Route::post('/import/{type}', 'ProductController@importFile')->name('import_file');
     Route::post('/upload/files', 'ProductController@uploadFiles')->name('upload_files');
+    Route::get('/category/{id}', 'CategoryController@index')->name('category');
 
 
     Route::post('/delete_attachment_ajax', 'AttachmentController@ajaxDeleteAttachment')->name('delete_attachment_ajax');
     Route::post('/update_caption_ajax', 'ProductController@ajaxUpdateCaption')->name('update_caption_ajax');
     Route::post('/get_categories_ajax', 'CategoryController@ajaxGetCategories')->name('get_categories_ajax');
+    Route::post('/delete_categories_ajax', 'CategoryController@ajaxDeleteCategories')->name('delete_categories_ajax');
 });
 

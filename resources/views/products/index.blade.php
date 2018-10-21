@@ -30,6 +30,7 @@
                 <div>
                     <a href="{{route('create')}}" class="btn btn-info">Create new product</a>
                     <a href="{{route('import',['type'=>'csv'])}}" class="btn btn-success">Import products</a>
+                    <a href="{{route('category',['id'=>Auth::id()])}}" class="btn btn-warning">Category list</a>
                 </div>
                 <div class="card">
                     <div class="card-header">OVERVIEW</div>
