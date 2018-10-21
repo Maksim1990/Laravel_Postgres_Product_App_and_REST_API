@@ -2,25 +2,37 @@
 
 namespace App\Http\Controllers;
 
+use App\Category;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function ajaxGetCategories(Request $request)
     {
-        $attachment_id = $request->attachment_id;
-        $strError = "";
-        $result = "success";
+        $product_id = $request->product_id;
+        $strExcludeCat = $request->strExcludeCat;
 
+        if (!empty($product_id)) {
 
-        $availableTags = [
-            "ActionScript",
-            "AppleScript",
-            "Asp",
+        }
+        $categories = Category::where('parent', 0)->where('name','!=',$strExcludeCat)->get();
+        $arrCategories = [];
+        if (!empty($categories)) {
+            foreach ($categories as $category) {
+                $arrCategories[] = $category->name;
+            }
+        }
+
+        $result = [
+            'arrCategories' => $arrCategories
         ];
 
         return response()->json([
-            $availableTags
+            $result
         ]);
     }
 }

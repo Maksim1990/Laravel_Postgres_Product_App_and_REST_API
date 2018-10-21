@@ -1,5 +1,5 @@
 <!-- Show Modal -->
-<div class="modal fade" id="deleteModal_{{$attachment->id}}" tabindex="-1" role="dialog" aria-labelledby="deleteModal_{{$attachment->id}}" aria-hidden="true">
+<div class="modal fade" id="deleteModal_{{$attachment}}" tabindex="-1" role="dialog" aria-labelledby="deleteModal_{{$attachment}}" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -13,7 +13,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-danger" id="delete_attachment_{{$attachment->id}}">Delete</button>
+                <button type="button" class="btn btn-danger" id="delete_attachment_{{$attachment}}">Delete</button>
             </div>
         </div>
     </div>
