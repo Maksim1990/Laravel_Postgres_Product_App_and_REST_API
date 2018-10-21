@@ -91,7 +91,11 @@
                                 @foreach($product->attachments as $attachment)
                                     <div class="col-sm-3">
                                             <div class="attachment" id="attachment_block_{{$attachment->id}}">
-                                                <img src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}" style="width:100%" data-toggle="modal" data-target="#modal_{{$attachment->id}}">
+                                                @if($attachment->import=='N')
+                                                    <img src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}" style="width:100%" data-toggle="modal" data-target="#modal_{{$attachment->id}}">
+                                                @else
+                                                    <img src="{{$attachment->type=='image'?$attachment->path:asset('storage/upload/images/includes/video.png')}}" style="width:100%" data-toggle="modal" data-target="#modal_{{$attachment->id}}">
+                                                @endif
                                                 <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal" data-target="#deleteModal_{{$attachment->id}}">X</button>
                                             </div>
                                    @include('partials.modal_attachment_show',['attachment'=>$attachment])

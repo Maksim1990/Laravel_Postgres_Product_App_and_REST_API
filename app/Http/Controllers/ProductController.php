@@ -17,8 +17,6 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $this->removeDeprecatedAttachments();
-
         $products = Product::where('user_id', Auth::id())->get();
         return view('products.index', compact('products'));
     }
@@ -29,28 +27,6 @@ class ProductController extends Controller
         return view('products.import', compact('type'));
     }
 
-    public function removeDeprecatedAttachments()
-    {
-        $old_attachments = Attachment::where('product_id', 0)->get();
-        if(!empty($old_attachments)){
-            foreach ($old_attachments as $attachment){
-                if(file_exists(public_path().$attachment->path)){
-                    Croppa::delete($attachment->path);
-                }
-
-                //-- Delete video thumbnails
-                if(in_array($attachment->extension,Config::VIDEO_EXTENSIONS)){
-                    $thumbnail=getVideoThumbnail($attachment->name);
-                    if(file_exists(public_path().$thumbnail)){
-                        unlink(public_path().$thumbnail);
-                    }
-                }
-                $attachment->delete();
-            }
-
-        }
-    }
-
     public function upload()
     {
 
@@ -59,42 +35,41 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product=Product::findOrFail($id);
-        $arrThumbnails=array();
-        if(count($product->attachments)>0){
-            foreach ($product->attachments as $attachment){
-                if($attachment->type=='image'){
-                    $arrThumbnails[$attachment->id]=Croppa::url('/uploads/'.$attachment->name, 400, 400, ['resize']);
-                }elseif ($attachment->type=='video'){
-                    $arrThumbnails[$attachment->id]=getVideoThumbnail($attachment->name);
+        $product = Product::findOrFail($id);
+        $arrThumbnails = array();
+        if (count($product->attachments) > 0) {
+            foreach ($product->attachments as $attachment) {
+                if ($attachment->import == 'N') {
+                    if ($attachment->type == 'image') {
+                        $arrThumbnails[$attachment->id] = Croppa::url('/uploads/' . $attachment->name, 400, 400, ['resize']);
+                    } elseif ($attachment->type == 'video') {
+                        $arrThumbnails[$attachment->id] = getVideoThumbnail($attachment->name);
+                    }
                 }
             }
         }
-        return view('products.show',compact('product','arrThumbnails'));
+        return view('products.show', compact('product', 'arrThumbnails'));
     }
 
     public function create()
     {
-        $this->removeDeprecatedAttachments();
         return view('products.create');
     }
 
     public function edit($id)
     {
-
-        $this->removeDeprecatedAttachments();
         $product = Product::where('user_id', Auth::id())->where('id', $id)->first();
-        $arrThumbnails=array();
-        if(count($product->attachments)>0){
-            foreach ($product->attachments as $attachment){
-                if($attachment->type=='image'){
-                    $arrThumbnails[$attachment->id]=Croppa::url('/uploads/'.$attachment->name, 400, 400, ['resize']);
-                }elseif ($attachment->type=='video'){
-                    $arrThumbnails[$attachment->id]=getVideoThumbnail($attachment->name);
+        $arrThumbnails = array();
+        if (count($product->attachments) > 0) {
+            foreach ($product->attachments as $attachment) {
+                if ($attachment->type == 'image') {
+                    $arrThumbnails[$attachment->id] = Croppa::url('/uploads/' . $attachment->name, 400, 400, ['resize']);
+                } elseif ($attachment->type == 'video') {
+                    $arrThumbnails[$attachment->id] = getVideoThumbnail($attachment->name);
                 }
             }
         }
-        return view('products.edit', compact('product','arrThumbnails'));
+        return view('products.edit', compact('product', 'arrThumbnails'));
     }
 
     /**
@@ -108,7 +83,7 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
         $input = $request->all();
-        $input['barcode']=generateBarcodeNumber(12);;
+        $input['barcode'] = generateBarcodeNumber(12);;
         $product->update($input);
         return redirect()->route('index');
     }
@@ -121,13 +96,13 @@ class ProductController extends Controller
         $input['barcode'] = generateBarcodeNumber(12);
 
 
-        $product=Product::create($input);
+        $product = Product::create($input);
 
         $attachments = Attachment::where('product_id', 0)->get();
-        if(!empty($attachments)){
-            foreach ($attachments as $attachment){
+        if (!empty($attachments)) {
+            foreach ($attachments as $attachment) {
                 $attachment->update([
-                    'product_id'=>$product->id
+                    'product_id' => $product->id
                 ]);
             }
 
@@ -141,20 +116,20 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        $product=Product::findOrFail($id);
-        Category::where('product_id',$product->id)->delete();
+        $product = Product::findOrFail($id);
+        Category::where('product_id', $product->id)->delete();
 
-        if(!empty($product->attachments)){
-            foreach ($product->attachments as $attachment){
-                if(file_exists(public_path().$attachment->path)){
+        if (!empty($product->attachments)) {
+            foreach ($product->attachments as $attachment) {
+                if (file_exists(public_path() . $attachment->path)) {
                     Croppa::delete($attachment->path);
                 }
 
                 //-- Delete video thumbnails
-                if(in_array($attachment->extension,Config::VIDEO_EXTENSIONS)){
-                    $thumbnail=getVideoThumbnail($attachment->name);
-                    if(file_exists(public_path().$thumbnail)){
-                        unlink(public_path().$thumbnail);
+                if (in_array($attachment->extension, Config::VIDEO_EXTENSIONS)) {
+                    $thumbnail = getVideoThumbnail($attachment->name);
+                    if (file_exists(public_path() . $thumbnail)) {
+                        unlink(public_path() . $thumbnail);
                     }
                 }
                 $attachment->delete();
@@ -162,7 +137,7 @@ class ProductController extends Controller
         }
 
 
-        Session::flash('product_change','The product has been successfully deleted!');
+        Session::flash('product_change', 'The product has been successfully deleted!');
         $product->delete();
         return redirect()->route('index');
     }
@@ -180,37 +155,37 @@ class ProductController extends Controller
                     'public/upload/import/', $name
                 );
 
-                $arrImport['intLines']=1;
-                $arrImport['intImportedLines']=0;
-                $arrImport['arrResourcesRejected']=[];
-                $arrRequiredFields=['name','barcode','brand','size','case_count'];
-                $arrErrors=[];
+                $arrImport['intLines'] = 1;
+                $arrImport['intImportedLines'] = 0;
+                $arrImport['arrResourcesRejected'] = [];
+                $arrRequiredFields = ['name', 'barcode', 'brand', 'size', 'case_count'];
+                $arrErrors = [];
 
                 if (file_exists(storage_path('/app/public/upload/import/' . $name))) {
 
-                    (new FastExcel)->import(storage_path('/app/public/upload//import/' . $name), function ($line) use(&$arrErrors,&$arrImport,$arrRequiredFields) {
-                        $arrLine=[];
-                        foreach ($line as $key=>$val){
-                            $arrKeys=explode(";",$key);
-                            $arrValues=explode(";",$val);
-                            $arrLine=array_combine($arrKeys,$arrValues);
+                    (new FastExcel)->import(storage_path('/app/public/upload//import/' . $name), function ($line) use (&$arrErrors, &$arrImport, $arrRequiredFields) {
+                        $arrLine = [];
+                        foreach ($line as $key => $val) {
+                            $arrKeys = explode(";", $key);
+                            $arrValues = explode(";", $val);
+                            $arrLine = array_combine($arrKeys, $arrValues);
                         }
-                        $blnStatus=true;
-                        foreach ($arrRequiredFields as $strField){
-                            if(empty($arrLine[$strField])){
-                                $blnStatus=false;
-                                $arrErrors[$arrImport['intLines']+1]= " field '".$strField."' can't be empty";
+                        $blnStatus = true;
+                        foreach ($arrRequiredFields as $strField) {
+                            if (empty($arrLine[$strField])) {
+                                $blnStatus = false;
+                                $arrErrors[$arrImport['intLines'] + 1] = " field '" . $strField . "' can't be empty";
                             }
                         }
 
-                        if($blnStatus && !empty($arrLine['barcode']) && Product::where('barcode',$arrLine['barcode'])->first()!== null){
-                            $blnStatus=false;
-                            $arrErrors[$arrImport['intLines']+1]= " product with barcode ".$arrLine['barcode']." already exist";
+                        if ($blnStatus && !empty($arrLine['barcode']) && Product::where('barcode', $arrLine['barcode'])->first() !== null) {
+                            $blnStatus = false;
+                            $arrErrors[$arrImport['intLines'] + 1] = " product with barcode " . $arrLine['barcode'] . " already exist";
                         }
 
-                        if($blnStatus){
+                        if ($blnStatus) {
                             $arrImport['intImportedLines']++;
-                            $product= Product::create([
+                            $product = Product::create([
                                 'user_id' => Auth::id(),
                                 'name' => $arrLine['name'],
                                 'barcode' => $arrLine['barcode'],
@@ -220,34 +195,34 @@ class ProductController extends Controller
                                 'case_count' => $arrLine['case_count']
                             ]);
 
-                            if(!empty($arrLine['attachment_resource'])){
-                                $arrData=explode("/",$arrLine['attachment_resource']);
+                            if (!empty($arrLine['attachment_resource'])) {
+                                $arrData = explode("/", $arrLine['attachment_resource']);
                                 $extension = substr($arrLine['attachment_resource'], -3);
 
-                                $blnUploadStatus=false;
+                                $blnUploadStatus = false;
                                 if (in_array($extension, Config::IMAGES_EXTENSIONS)) {
-                                    $blnUploadStatus=true;
-                                    $stsType='image';
+                                    $blnUploadStatus = true;
+                                    $stsType = 'image';
                                 }
 
                                 if (in_array($extension, Config::VIDEO_EXTENSIONS)) {
-                                    $blnUploadStatus=true;
-                                    $stsType='video';
+                                    $blnUploadStatus = true;
+                                    $stsType = 'video';
                                 }
 
-                                if($blnUploadStatus){
+                                if ($blnUploadStatus) {
                                     Attachment::create([
                                         'user_id' => Auth::id(),
                                         'product_id' => $product->id,
-                                        'name' => $arrData[count($arrData)-1],
+                                        'name' => $arrData[count($arrData) - 1],
                                         'size' => 0,
                                         'extension' => $extension,
                                         'type' => $stsType,
                                         'import' => 'Y',
                                         'path' => $arrLine['attachment_resource']
                                     ]);
-                                }else{
-                                    $arrImport['arrResourcesRejected'][]=$arrLine['attachment_resource'];
+                                } else {
+                                    $arrImport['arrResourcesRejected'][] = $arrLine['attachment_resource'];
                                 }
                             }
 
@@ -263,7 +238,6 @@ class ProductController extends Controller
 
                     return redirect()->route('index');
                 }
-
 
 
             }

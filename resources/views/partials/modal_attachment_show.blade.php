@@ -11,8 +11,7 @@
             </div>
             <div class="modal-body">
                 @if(in_array($attachment->extension,\App\Config\Config::IMAGES_EXTENSIONS))
-                    <img src="{{asset($attachment->path)}}"
-                         style="width:100%">
+                    <img src="{{asset($attachment->path)}}" width="840">
                 @elseif(in_array($attachment->extension,\App\Config\Config::VIDEO_EXTENSIONS))
                     <video controls
                            preload="auto" width="840" height="464">

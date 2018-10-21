@@ -87,9 +87,11 @@
                         @if(count($product->attachments)>0)
                             @foreach($product->attachments as $attachment)
                                 <div class="attachment" id="attachment_block_{{$attachment->id}}">
-                                    <img
-                                        src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}"
-                                        style="width:100%">
+                                    @if($attachment->import=='N')
+                                        <img src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}" style="width:100%">
+                                    @else
+                                        <img src="{{$attachment->type=='image'?$attachment->path:asset('storage/upload/images/includes/video.png')}}" style="width:100%">
+                                    @endif
                                     <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal"
                                             data-target="#deleteModal_{{$attachment->id}}">X
                                     </button>
