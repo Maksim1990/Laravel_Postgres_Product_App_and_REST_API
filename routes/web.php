@@ -32,5 +32,6 @@ Route::group(['middleware' => 'admin'], function () {
 
     Route::post('/delete_attachment_ajax', 'AttachmentController@ajaxDeleteAttachment')->name('delete_attachment_ajax');
     Route::post('/update_caption_ajax', 'ProductController@ajaxUpdateCaption')->name('update_caption_ajax');
+    Route::post('/get_categories_ajax', 'CategoryController@ajaxGetCategories')->name('get_categories_ajax');
 });
 

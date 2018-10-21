@@ -53,11 +53,14 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('products.create');
+
+        $loadMainJS=false;
+        return view('products.create',compact('loadMainJS'));
     }
 
     public function edit($id)
     {
+        $loadMainJS=false;
         $product = Product::where('user_id', Auth::id())->where('id', $id)->first();
         $arrThumbnails = array();
         if (count($product->attachments) > 0) {
@@ -69,7 +72,10 @@ class ProductController extends Controller
                 }
             }
         }
-        return view('products.edit', compact('product', 'arrThumbnails'));
+
+       $category=Category::find(1);
+        dd($category->products);
+        return view('products.edit', compact('product', 'arrThumbnails','loadMainJS'));
     }
 
     /**

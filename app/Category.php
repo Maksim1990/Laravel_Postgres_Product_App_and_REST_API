@@ -9,6 +9,13 @@ class Category extends Model
     protected $guarded = [];
 
     public function products(){
-        return $this->hasMany(Product::class);
+        return $this->hasManyThrough(
+            Product::class,
+            ProductCategoryPivot::class,
+            'category_id',
+            'id',
+            'id',
+            'product_id'
+        );
     }
 }
