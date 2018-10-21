@@ -24,7 +24,9 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="inline_form">
-                    {!! Form::model($product,['method'=>'PATCH','action'=>['ProductController@update',$product->id], 'files'=>true])!!}
+                    {!! Form::model($product,['method'=>'PATCH','id'=>"product_form",'action'=>['ProductController@update',$product->id], 'files'=>true])!!}
+                    <input type="hidden" name="categories_form" id="categories_form"
+                           value="{{old('categories_form')?old('categories_form'):$strCategories}}">
                     <div class="group-form">
                         {!! Form::label('name','Name:') !!}
                         {!! Form::text('name', null, ['class'=>'form-control']) !!}
@@ -64,28 +66,39 @@
                     <div>
 
                     </div>
-                        </div>
-                        <div class="w3-margin-top w3-margin-bottom">
-                        @if(count($product->attachments)>0)
-                            @foreach($product->attachments as $attachment)
-                                <div class="attachment" id="attachment_block_{{$attachment->id}}">
-                                    @if($attachment->import=='N')
-                                        <img src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}" style="width:100%">
-                                    @else
-                                        <img src="{{$attachment->type=='image'?$attachment->path:asset('storage/upload/images/includes/video.png')}}" style="width:100%">
-                                    @endif
-                                    <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal"
-                                            data-target="#deleteModal_{{$attachment->id}}">X
-                                    </button>
-                                </div>
-                                    @include('partials.modal_attachment_delete',['attachment'=>$attachment->id,
-                                    'action'=>'delete',
-                                    'slug'=>'attachment'])
-                            @endforeach
-                        @else
+                </div>
+                @include('partials.categories')
+
+                <div class="w3-margin-top w3-margin-bottom">
+
+                    @if(count($product->attachments)>0)
+                        @foreach($product->attachments as $attachment)
+                            <div class="attachment" id="attachment_block_{{$attachment->id}}">
+                                @if($attachment->import=='N')
+                                    <img
+                                        src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}"
+                                        style="width:100%">
+                                @else
+                                    <img
+                                        src="{{$attachment->type=='image'?$attachment->path:asset('storage/upload/images/includes/video.png')}}"
+                                        style="width:100%">
+                                @endif
+                                <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal"
+                                        data-target="#deleteModal_{{$attachment->id}}">X
+                                </button>
+                            </div>
+                            @include('partials.modal_attachment_delete',['attachment'=>$attachment->id,
+                            'action'=>'delete',
+                            'slug'=>'attachment'])
+                        @endforeach
+                    @else
+                        <div class="w3-center">
                             No attachments found
-                        @endif
                         </div>
+                    @endif
+                    <hr>
+                </div>
+                <div class="col-sm-12">
                     <div class="container">
                         {!! Form::open(['method'=>'POST','action'=>['AttachmentController@store','userId'=>Auth::id()],'id'=>'uploadForm', 'class'=>'dropzone'])!!}
 
@@ -94,38 +107,64 @@
                         {!! Form::close() !!}
                     </div>
                     @include('includes.formErrors')
-            </div>
                 </div>
-
-            @endsection
-            @section('scripts')
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.js"></script>
-                <script>
-                    var token = '{{\Illuminate\Support\Facades\Session::token()}}';
-                    Dropzone.options.uploadForm = {
-                        dataType: "json",
-                        success: function (file, response) {
-                            if (response == "success") {
-                                new Noty({
-                                    type: 'success',
-                                    layout: 'topRight',
-                                    text: 'Attachments updated!'
-                                }).show();
-                            } else {
-                                new Noty({
-                                    type: 'error',
-                                    layout: 'bottomLeft',
-                                    text: response
-                                }).show();
-                            }
+            </div>
+        </div>
+        <input type="hidden" id="category_delete" value="">
+        @include('partials.modal_attachment_delete',['attachment'=>'category',
+        'action'=>'unlink',
+        'slug'=>'category'])
+        @endsection
+        @section('scripts')
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.js"></script>
+            @include('partials.categories_js')
+            <script>
+                var token = '{{\Illuminate\Support\Facades\Session::token()}}';
+                Dropzone.options.uploadForm = {
+                    dataType: "json",
+                    success: function (file, response) {
+                        if (response == "success") {
+                            new Noty({
+                                type: 'success',
+                                layout: 'topRight',
+                                text: 'Attachments updated!'
+                            }).show();
+                        } else {
+                            new Noty({
+                                type: 'error',
+                                layout: 'bottomLeft',
+                                text: response
+                            }).show();
                         }
-                    };
+                    }
+                };
 
-                    //-- Delete attachment
-                    $("button[id^='delete_attachment_']").click(function () {
-                        var attachment_id = $(this).attr('id').replace('delete_attachment_', '');
+                //-- Check whether necessary to display any linked ctegory
+                var selectedCategories = {!! json_encode($strCategories) !!};
+                if (selectedCategories != '') {
+                    var arrCategories = selectedCategories.trim().split(";");
+                    showInitiallySelectedCategories(arrCategories);
+                }
 
-                        $('#deleteModal_' + attachment_id).modal('toggle');
+                function showInitiallySelectedCategories(arrCategories) {
+
+                    for (var i = 0; i < arrCategories.length; i++) {
+                        var strCategory = "<div class=\"w3-display-topright\">\n" +
+                            "                    <button class=\"btn delete\" data-category='" + arrCategories[i] + "' onclick=\"deleteCategory(this)\" data-toggle=\"modal\"\n" +
+                            "                                            data-target=\"#deleteModal_category\">X\n" +
+                            "                    </button>\n" +
+                            "                    </div>\n" +
+                            "                    <div class=\"w3-display-middle category_text\">" + arrCategories[i] + "</div>";
+
+                        $('<div class="w3-display-container w3-green col-sm-3 w3-margin-right w3-margin-bottom">').html(strCategory + "</div>").appendTo('#categories_list');
+                    }
+                }
+
+                //-- Delete attachment
+                $("button[id^='delete_attachment_']").click(function () {
+                    var id = $(this).attr('id');
+                    var attachment_id = id.replace('delete_attachment_', '');
+                    if (id !== 'delete_attachment_category') {
                         var url = '{{ route('delete_attachment_ajax') }}';
                         $.ajax({
                             method: 'POST',
@@ -160,6 +199,8 @@
                                 $("div#divLoading").removeClass('show');
                             }
                         });
-                    });
-                </script>
+                    }
+
+                });
+            </script>
 @endsection

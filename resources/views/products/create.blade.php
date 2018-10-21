@@ -2,9 +2,7 @@
 @section('styles')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.css" rel="stylesheet">
     <style>
-        #categories_list>.w3-display-container{
-            height:50px;border-radius: 10px;
-        }
+
     </style>
 @endsection
 @section('content')
@@ -88,19 +86,6 @@
                 }
             }
         };
-
-        $('#product_form').on('submit', function(e) {
-            e.preventDefault();
-
-            var arrCetegories=[];
-            $('.category_text').each(function( index ) {
-              arrCetegories.push($( this ).text());
-            });
-            var strCategories=arrCetegories.join(";");
-            $('#categories_form').val(strCategories);
-
-            this.submit();
-        });
 
     </script>
 @endsection

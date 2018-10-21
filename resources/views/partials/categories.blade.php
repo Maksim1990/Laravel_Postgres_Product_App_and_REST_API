@@ -1,5 +1,7 @@
 <div class="w3-margin-bottom">
     <div class="col-sm-12">
+        <hr>
+        <h3>Categories</h3>
         <div class="ui-widget">
             <div class="col-sm-4 tooltip_cust">
                 <input id="categories" type="text" class="form-control"

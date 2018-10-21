@@ -10818,8 +10818,10 @@ a.text-dark:focus {
 .attachment img {
   width: 100%;
   height: auto;
-  border-radius: 10px;
+  border-radius: 20px;
   max-height: 80px;
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 
 .attachment .btn {
@@ -10888,5 +10890,10 @@ a.text-dark:focus {
   border-width: 5px;
   border-style: solid;
   border-color: black transparent transparent transparent;
+}
+
+#categories_list > .w3-display-container {
+  height: 50px;
+  border-radius: 10px;
 }
 

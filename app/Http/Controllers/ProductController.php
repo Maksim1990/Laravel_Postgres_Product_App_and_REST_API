@@ -49,19 +49,50 @@ class ProductController extends Controller
                 }
             }
         }
-        return view('products.show', compact('product', 'arrThumbnails'));
+
+        //-- Get customized array of categories
+        $arrCategories = $this->buildCategoryLabelsArray($product);
+
+        return view('products.show', compact('product', 'arrThumbnails', 'arrCategories'));
     }
 
+    /**
+     * @param $product
+     * @return array
+     */
+    public function buildCategoryLabelsArray($product)
+    {
+        $arrCategories = [];
+        if (!empty($product->categories)) {
+            foreach ($product->categories as $category) {
+                if ($category->parent == 0) {
+                    $arrCategories[] = $category->name;
+                } else {
+                    $parentCategory = Category::find($category->parent);
+                    $arrCategories[] = $parentCategory->name . ":" . $category->name;
+                }
+            }
+        }
+
+        return $arrCategories;
+    }
+
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function create()
     {
-
-        $loadMainJS=true;
-        return view('products.create',compact('loadMainJS'));
+        $loadMainJS = true;
+        return view('products.create', compact('loadMainJS'));
     }
 
+    /**
+     * @param $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function edit($id)
     {
-        $loadMainJS=true;
+        $loadMainJS = true;
         $product = Product::where('user_id', Auth::id())->where('id', $id)->first();
         $arrThumbnails = array();
         if (count($product->attachments) > 0) {
@@ -73,7 +104,13 @@ class ProductController extends Controller
                 }
             }
         }
-        return view('products.edit', compact('product', 'arrThumbnails','loadMainJS'));
+        //-- Get customized array of categories
+        $arrCategories = $this->buildCategoryLabelsArray($product);
+        $strCategories = "";
+        if (!empty($arrCategories)) {
+            $strCategories = implode(";", $arrCategories);
+        }
+        return view('products.edit', compact('product', 'arrThumbnails', 'loadMainJS', 'strCategories'));
     }
 
     /**
@@ -85,66 +122,71 @@ class ProductController extends Controller
      */
     public function update(ProductCreateRequest $request, $id)
     {
-        $product = Product::findOrFail($id);
         $input = $request->all();
+        $product = Product::findOrFail($id);
+        $linkedCategories = $request->categories_form;
+
+        unset($input['categories_form']);
+        $arrCategories = [];
+        if (!empty($linkedCategories)) {
+            $arrCategories = explode(";", $linkedCategories);
+        }
+
+        $arrCurrentCategories = [];
+        if (!empty($product->categories)) {
+            foreach ($product->categories as $category) {
+                if ($category->parent == 0) {
+                    $arrCurrentCategories[$category->id] = $category->name;
+                }
+            }
+        }
+
+
+        if (!empty($arrCurrentCategories)) {
+            foreach ($arrCurrentCategories as $id => $categoryName) {
+                if (($key = array_search($categoryName, $arrCategories)) !== false) {
+                    unset($arrCategories[$key]);
+                    unset($arrCurrentCategories[$id]);
+                } else {
+                    ProductCategoryPivot::where('category_id',$id)->where('product_id',$product->id)->delete();
+                }
+            }
+        }
+
+        if (!empty($arrCategories)) {
+            $this->handleNewCategoryList($product,$arrCategories);
+        }
+
         $input['barcode'] = generateBarcodeNumber(12);;
         $product->update($input);
-        return redirect()->route('index');
+        return redirect('products/'.$product->id);
     }
 
+    /**
+     * @param ProductCreateRequest $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(ProductCreateRequest $request)
     {
         $input = $request->all();
         $linkedCategories = $request->categories_form;
         unset($input['categories_form']);
-        $arrCategories=[];
-        if(!empty($linkedCategories)){
-            $arrCategories=explode(";",$linkedCategories);
+        $arrCategories = [];
+        if (!empty($linkedCategories)) {
+            $arrCategories = explode(";", $linkedCategories);
         }
 
         $user = Auth::user();
         $input['user_id'] = $user->id;
         $input['barcode'] = generateBarcodeNumber(12);
 
-        $maxID=Product::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
-        $input['id']=$maxID!=null?$maxID->id+1:1;
+        $maxID = Product::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
+        $input['id'] = $maxID != null ? $maxID->id + 1 : 1;
         $product = Product::create($input);
 
-
-        if(!empty($arrCategories)){
-            foreach ($arrCategories as $categoryName){
-                $categoryData=explode(":",$categoryName);
-                foreach ($categoryData as $key=>$cat){
-                    $categoryItem = Category::where('name',$cat)->first();
-                    if($key>0){
-                        $parentCategory=Category::where('name',$categoryData[0])->first();
-                    }
-                    if($categoryItem==null){
-                        $maxID=Category::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
-                        $categoryItem=Category::create([
-                            'id'=>$maxID!=null?$maxID->id+1:1,
-                            'user_id'=> Auth::id(),
-                            'name'=> $cat,
-                            'parent'=> $key==0?$key:$parentCategory->id,
-                        ]);
-                    }
-
-                    if($key==(count($categoryData)-1)){
-                        $categoryLink=ProductCategoryPivot::where('product_id',$product->id)->where('category_id',$categoryItem->id)->first();
-                        $maxID=ProductCategoryPivot::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
-                        if($categoryLink===null){
-                            ProductCategoryPivot::create([
-                                'id'=>$maxID!=null?$maxID->id+1:1,
-                                'product_id'=>$product->id,
-                                'category_id'=>$categoryItem->id,
-                            ]);
-                        }
-                    }
-                }
-
-            }
+        if (!empty($arrCategories)) {
+            $this->handleNewCategoryList($product, $arrCategories);
         }
-
 
         $attachments = Attachment::where('product_id', 0)->get();
         if (!empty($attachments)) {
@@ -161,6 +203,41 @@ class ProductController extends Controller
 
     }
 
+
+    public function handleNewCategoryList($product,$arrCategories)
+    {
+
+            foreach ($arrCategories as $categoryName) {
+                $categoryData = explode(":", $categoryName);
+                foreach ($categoryData as $key => $cat) {
+                    $categoryItem = Category::where('name', $cat)->first();
+                    if ($key > 0) {
+                        $parentCategory = Category::where('name', $categoryData[0])->first();
+                    }
+                    if ($categoryItem == null) {
+                        $maxID = Category::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
+                        $categoryItem = Category::create([
+                            'id' => $maxID != null ? $maxID->id + 1 : 1,
+                            'user_id' => Auth::id(),
+                            'name' => $cat,
+                            'parent' => $key == 0 ? $key : $parentCategory->id,
+                        ]);
+                    }
+
+                    if ($key == (count($categoryData) - 1)) {
+                        $categoryLink = ProductCategoryPivot::where('product_id', $product->id)->where('category_id', $categoryItem->id)->first();
+                        $maxID = ProductCategoryPivot::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
+                        if ($categoryLink === null) {
+                            ProductCategoryPivot::create([
+                                'id' => $maxID != null ? $maxID->id + 1 : 1,
+                                'product_id' => $product->id,
+                                'category_id' => $categoryItem->id,
+                            ]);
+                        }
+                    }
+            }
+        }
+    }
 
     public function destroy($id)
     {
@@ -245,9 +322,9 @@ class ProductController extends Controller
 
                             if ($blnStatus) {
                                 $arrImport['intImportedLines']++;
-                                $maxID=Product::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
+                                $maxID = Product::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
                                 $product = Product::create([
-                                    'id'=>$maxID!=null?$maxID->id+1:1,
+                                    'id' => $maxID != null ? $maxID->id + 1 : 1,
                                     'user_id' => Auth::id(),
                                     'name' => $arrLine['name'],
                                     'barcode' => $arrLine['barcode'],
@@ -273,9 +350,9 @@ class ProductController extends Controller
                                     }
 
                                     if ($blnUploadStatus) {
-                                        $maxID=Attachment::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
+                                        $maxID = Attachment::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
                                         Attachment::create([
-                                            'id'=>$maxID!=null?$maxID->id+1:1,
+                                            'id' => $maxID != null ? $maxID->id + 1 : 1,
                                             'user_id' => Auth::id(),
                                             'product_id' => $product->id,
                                             'name' => $arrData[count($arrData) - 1],

@@ -76,6 +76,19 @@
                         <div class="col-sm-12 w3-center w3-margin-top">
                             <p>{{$product->description}}</p>
                         </div>
+                        <div class="col-sm-12 w3-center w3-margin-top" id="categories_list">
+                            <h3>Categories</h3>
+                            <hr>
+                            @if(!empty($arrCategories))
+                            @foreach($arrCategories as $category)
+                                <div class="w3-display-container w3-green col-sm-3 w3-margin-right w3-margin-bottom">
+                                    <div class="w3-display-middle category_text">{{$category}}</div>
+                                </div>
+                            @endforeach
+                                @else
+                                <p>No linked categories</p>
+                            @endif
+                        </div>
                         <div class="col-sm-12 w3-margin-bottom">
 
                             <hr>
