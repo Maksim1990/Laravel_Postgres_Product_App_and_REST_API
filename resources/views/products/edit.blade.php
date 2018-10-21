@@ -78,7 +78,9 @@
                                             data-target="#deleteModal_{{$attachment->id}}">X
                                     </button>
                                 </div>
-                                @include('partials.modal_attachment_delete',['attachment'=>$attachment->id])
+                                    @include('partials.modal_attachment_delete',['attachment'=>$attachment->id,
+                                    'action'=>'delete',
+                                    'slug'=>'attachment'])
                             @endforeach
                         @else
                             No attachments found

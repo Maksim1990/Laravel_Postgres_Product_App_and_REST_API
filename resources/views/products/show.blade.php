@@ -99,7 +99,10 @@
                                             </button>
                                         </div>
                                         @include('partials.modal_attachment_show',['attachment'=>$attachment])
-                                        @include('partials.modal_attachment_delete',['attachment'=>$attachment->id])
+                                        @include('partials.modal_attachment_delete',['attachment'=>$attachment->id,
+                                        'slug'=>'attachment',
+                                        'action'=>'delete',
+                                        ])
                                         @endforeach
                                         @else
                                             No attachments found

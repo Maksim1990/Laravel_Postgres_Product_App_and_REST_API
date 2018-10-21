@@ -1,13 +1,19 @@
 @extends('layouts.main')
 @section('styles')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.css" rel="stylesheet">
+    <style>
+        #categories_list>.w3-display-container{
+            height:50px;border-radius: 10px;
+        }
+    </style>
 @endsection
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="inline_form w3-margin-bottom">
-                    {!! Form::open(['method'=>'POST', 'id'=>"email_form",'action'=>['ProductController@store','id'=>Auth::id()], 'files'=>true])!!}
+                    {!! Form::open(['method'=>'POST', 'id'=>"product_form",'action'=>['ProductController@store','id'=>Auth::id()], 'files'=>true])!!}
+                    <input type="hidden" name="categories_form" id="categories_form" value="{{old('categories_form')}}">
                     <div class="group-form">
                         {!! Form::label('name','Name:') !!}
                         {!! Form::text('name', null, ['class'=>'form-control']) !!}
@@ -40,41 +46,7 @@
                     {!! Form::close() !!}
 
                 </div>
-                <div class="w3-margin-bottom">
-                    <div class="col-sm-12">
-                        <div class="ui-widget">
-                            <div class="col-sm-4 tooltip_cust">
-                                <input id="categories" type="text" class="form-control"
-                                       placeholder="Start type category">
-                                <span class="tooltiptext">Category</span>
-                                <span class="w3-text-red" data-placement="top" id="categories_alert"></span>
-                            </div>
-                            <div class="col-sm-4 tooltip_cust">
-                                <input id="subcategories" type="text" class="form-control"
-                                       placeholder="Start type subcategory">
-                                <span class="tooltiptext">Subcategory</span>
-                            </div>
-                            <div class="col-sm-2">
-                                <a href="#" id="add_category" class="btn btn-success">Add</a>
-                            </div>
-                            <div class="col-sm-12">
-                                <hr>
-                                <div id="categories_list">
-                                    <div class="w3-display-container w3-green"
-                                         style="height:50px;border-radius: 10px;width: 20%;">
-                                        <div class="w3-display-topright">
-                                            <button class="btn delete" data-toggle="modal"
-                                                    data-target="#deleteModal_category">X
-                                            </button>
-                                        </div>
-                                        <div class="w3-display-middle">Middle</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
+                @include('partials.categories')
                 <div class="col-sm-12">
                     <div class="container w3-margin-top">
                         {!! Form::open(['method'=>'POST','action'=>['AttachmentController@store','userId'=>Auth::id()],'id'=>'uploadForm', 'class'=>'dropzone'])!!}
@@ -89,71 +61,14 @@
 
         </div>
     </div>
-    @include('partials.modal_attachment_delete',['attachment'=>'category'])
+    <input type="hidden" id="category_delete" value="">
+    @include('partials.modal_attachment_delete',['attachment'=>'category',
+    'action'=>'unlink',
+    'slug'=>'category'])
 @endsection
 @section('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.js"></script>
-    <script>
-        var token = '{{\Illuminate\Support\Facades\Session::token()}}';
-
-        function getCategoriesList(strExcludeCat) {
-            var availableTags = '';
-            var url = '{{ route('get_categories_ajax') }}';
-            $.ajax({
-                method: 'POST',
-                url: url,
-                dataType: "json",
-                async: false,
-                data: {
-                    product_id: 0,
-                    strExcludeCat: strExcludeCat,
-                    _token: token
-                },
-                success: function (data) {
-                    console.log(data);
-                    availableTags = data[0]['arrCategories'];
-                }
-            });
-            return availableTags
-        }
-
-        $("#categories,#subcategories").click(function () {
-            var id = $(this).attr('id');
-            if (id === 'categories') {
-                var strExcludeCat = $('#subcategories').val();
-            } else {
-                var strExcludeCat = $('#categories').val();
-            }
-
-            $(this).autocomplete({
-                source: getCategoriesList(strExcludeCat)
-            });
-        });
-        $("#add_category").click(function (e) {
-            e.preventDefault();
-            var status = true;
-            $('#categories_alert').text('');
-            var category = $('#categories').val();
-            var subcategory = $('#subcategories').val();
-
-            if (category === '') {
-                status = false;
-                $('#categories_alert').text('* Please choose category');
-            }
-
-            if (subcategory !== '') {
-                category += ":" + subcategory;
-            }
-
-            if (status) {
-                console.log(category);
-            }
-
-
-        });
-
-
-    </script>
+    @include('partials.categories_js')
     <script>
         Dropzone.options.uploadForm = {
             dataType: "json",
@@ -173,5 +88,19 @@
                 }
             }
         };
+
+        $('#product_form').on('submit', function(e) {
+            e.preventDefault();
+
+            var arrCetegories=[];
+            $('.category_text').each(function( index ) {
+              arrCetegories.push($( this ).text());
+            });
+            var strCategories=arrCetegories.join(";");
+            $('#categories_form').val(strCategories);
+
+            this.submit();
+        });
+
     </script>
 @endsection

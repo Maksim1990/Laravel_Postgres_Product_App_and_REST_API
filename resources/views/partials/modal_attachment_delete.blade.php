@@ -3,17 +3,17 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Delete attachment</h5>
+                <h5 class="modal-title">Delete {{$slug}}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                Do you really want to delete this attachment?
+                Do you really want to {{$action}} this {{$slug}}?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-danger" id="delete_attachment_{{$attachment}}">Delete</button>
+                <button type="button" class="btn btn-danger" data-category="" data-dismiss="modal" id="delete_attachment_{{$attachment}}">{{ucfirst($action)}}</button>
             </div>
         </div>
     </div>
