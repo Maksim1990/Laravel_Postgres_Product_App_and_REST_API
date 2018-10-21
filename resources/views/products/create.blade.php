@@ -6,6 +6,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
+                <div class="inline_form w3-margin-bottom">
                 {!! Form::open(['method'=>'POST', 'id'=>"email_form",'action'=>['ProductController@store','id'=>Auth::id()], 'files'=>true])!!}
                 <div class="group-form">
                     {!! Form::label('name','Name:') !!}
@@ -34,8 +35,11 @@
                     {!! Form::textarea('description', null, ['class'=>'form-control','id'=>'code']) !!}
                     <br>
                 </div>
+                    <a href="{{route('index')}}" class="btn btn-success">Cancel</a>
                 {!! Form::submit('Create product',['class'=>'btn btn-warning']) !!}
                 {!! Form::close() !!}
+
+            </div>
                 <div class="container">
                     {!! Form::open(['method'=>'POST','action'=>['AttachmentController@store','userId'=>Auth::id()],'id'=>'uploadForm', 'class'=>'dropzone'])!!}
 

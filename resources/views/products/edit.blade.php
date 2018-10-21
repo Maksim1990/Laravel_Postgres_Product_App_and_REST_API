@@ -60,6 +60,7 @@
 
                     {!! Form::close() !!}
                     <a href="{{route('index')}}" class="btn btn-info">Back to products</a>
+                    <a href="{{route('products.show',['id'=>$product->id])}}" class="btn btn-success">Product view</a>
                     <div>
 
                     </div>

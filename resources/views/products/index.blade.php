@@ -34,7 +34,7 @@
                 <div class="card">
                     <div class="card-header">OVERVIEW</div>
 
-                    <div class="w3-container">
+                    <div class="w3-container w3-margin-bottom">
 
 
                         <table class="w3-table w3-striped w3-hoverable">
