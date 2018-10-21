@@ -19,6 +19,15 @@
                         <p>To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
                     </video>
                 @endif
+                    <hr>
+                <div class="col-sm-6 col-sm-offset-3 w3-center">
+                    <p class="caption_text" id="caption_text_{{$attachment->id}}">
+                        {{!empty($attachment->caption)?$attachment->caption:'Still no caption'}}
+                    </p>
+                    <p class="caption_input" id="caption_input_box_{{$attachment->id}}">
+                        <input type="text" class="form-control" id="caption_input_{{$attachment->id}}" value="">
+                    </p>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger"

@@ -3,10 +3,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.0/min/dropzone.min.css" rel="stylesheet">
     <style>
         .attachment {
-            position: relative;
             width: 50%;
             max-width: 150px;
-            display: inline-block;
         }
 
         .attachment img {
@@ -18,24 +16,6 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            -ms-transform: translate(-50%, -50%);
-            background-color: #ab1f25;
-            color: white;
-            font-size: 12px;
-            padding: 5px 5px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            text-align: center;
-        }
-
-        .attachment .btn:hover {
-            background-color: black;
-        }
-
-        .inline_form form {
-            display: inline;
         }
     </style>
 @endsection

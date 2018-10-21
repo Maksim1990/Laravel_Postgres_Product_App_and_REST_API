@@ -2,15 +2,8 @@
 @section('styles')
     <style>
         .attachment {
-            position: relative;
             width: 80%;
             max-width: 300px;
-            display: inline-block;
-        }
-
-        .attachment img {
-            width: 100%;
-            height: auto;
         }
 
         .attachment .btn {
@@ -18,23 +11,22 @@
             top: 20%;
             right: 5%;
             display: none;
-            transform: translate(-50%, -50%);
-            -ms-transform: translate(-50%, -50%);
-            background-color: #ab1f25;
-            color: white;
-            font-size: 12px;
-            padding: 5px 5px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            text-align: center;
         }
 
-        .attachment .btn:hover {
-            background-color: black;
-        }
         .modal-dialog {
             max-width: 70%;
+        }
+
+        .caption_input {
+            display: none;
+        }
+
+        .caption_text {
+            border-radius: 10px;
+        }
+
+        .caption_text:hover {
+            box-shadow: 5px 10px 8px #888888;
         }
     </style>
 @endsection
@@ -84,86 +76,157 @@
                         <div class="col-sm-12 w3-center w3-margin-top">
                             <p>{{$product->description}}</p>
                         </div>
-                        <div class="col-sm-12">
+                        <div class="col-sm-12 w3-margin-bottom">
 
                             <hr>
                             @if(count($product->attachments)>0)
                                 @foreach($product->attachments as $attachment)
                                     <div class="col-sm-3">
-                                            <div class="attachment" id="attachment_block_{{$attachment->id}}">
-                                                @if($attachment->import=='N')
-                                                    <img src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}" style="width:100%" data-toggle="modal" data-target="#modal_{{$attachment->id}}">
-                                                @else
-                                                    <img src="{{$attachment->type=='image'?$attachment->path:asset('storage/upload/images/includes/video.png')}}" style="width:100%" data-toggle="modal" data-target="#modal_{{$attachment->id}}">
-                                                @endif
-                                                <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal" data-target="#deleteModal_{{$attachment->id}}">X</button>
-                                            </div>
-                                   @include('partials.modal_attachment_show',['attachment'=>$attachment])
-                                   @include('partials.modal_attachment_delete',['attachment'=>$attachment])
-                                @endforeach
-                            @else
-                                No attachments found
-                            @endif
+                                        <div class="attachment" id="attachment_block_{{$attachment->id}}">
+                                            @if($attachment->import=='N')
+                                                <img
+                                                    src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}"
+                                                    style="width:100%" data-toggle="modal"
+                                                    data-target="#modal_{{$attachment->id}}">
+                                            @else
+                                                <img
+                                                    src="{{$attachment->type=='image'?$attachment->path:asset('storage/upload/images/includes/video.png')}}"
+                                                    style="width:100%" data-toggle="modal"
+                                                    data-target="#modal_{{$attachment->id}}">
+                                            @endif
+                                            <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal"
+                                                    data-target="#deleteModal_{{$attachment->id}}">X
+                                            </button>
+                                        </div>
+                                        @include('partials.modal_attachment_show',['attachment'=>$attachment])
+                                        @include('partials.modal_attachment_delete',['attachment'=>$attachment])
+                                        @endforeach
+                                        @else
+                                            No attachments found
+                                        @endif
+                                    </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-@endsection
+        @endsection
 
-@section('scripts')
-    <script>
-        var token = '{{\Illuminate\Support\Facades\Session::token()}}';
-        $('.attachment').on('mouseover',function () {
-            $(this).find('.btn').show();
-        })
+        @section('scripts')
+            <script>
+                var token = '{{\Illuminate\Support\Facades\Session::token()}}';
+                $('.attachment').on('mouseover', function () {
+                    $(this).find('.btn').show();
+                })
 
-        $('.attachment').on('mouseout',function () {
-            $(this).find('.btn').hide();
-        });
+                $('.attachment').on('mouseout', function () {
+                    $(this).find('.btn').hide();
+                });
 
 
-        //-- Delete attachment
-        $("button[id^='delete_attachment_']").click(function () {
-            var attachment_id = $(this).attr('id').replace('delete_attachment_','');
+                $("p[id^='caption_text_']").click(function () {
+                    var attachment_id = $(this).attr('id').replace('caption_text_', '');
+                    var strCaption = $(this).text();
+                    $(this).hide();
+                    if (strCaption.trim() === 'Still no caption') {
+                        $('#caption_input_' + attachment_id).attr('placeholder', strCaption.trim());
+                    } else {
+                        $('#caption_input_' + attachment_id).val(strCaption.trim());
+                    }
 
-            $('#deleteModal_'+attachment_id).modal('toggle');
-                var url = '{{ route('delete_attachment_ajax') }}';
-                $.ajax({
-                    method: 'POST',
-                    url: url,
-                    dataType: "json",
-                    data: {
-                        attachment_id: attachment_id,
-                        _token: token
-                    }, beforeSend: function () {
-                        //-- Show loading image while execution of ajax request
-                        $("div#divLoading").addClass('show');
-                    },
-                    success: function (data) {
-                        if (data['result'] === "success") {
-                            new Noty({
-                                type: 'success',
-                                layout: 'topRight',
-                                text: 'Attachment was successfully deleted!'
-                            }).show();
+                    $('#caption_input_box_' + attachment_id).show();
+                    $('#caption_input_' + attachment_id).focus();
+                });
 
-                            //-- Hide visually attachment
-                            $('#attachment_block_' + attachment_id).hide();
-                        } else {
-                            new Noty({
-                                type: 'error',
-                                layout: 'bottomLeft',
-                                text: data['error']
-                            }).show();
+
+                $('input[id^="caption_input_"]').keydown(function (e) {
+
+                    if (e.keyCode == 13) {
+                        var id = $(this).attr('id').replace('caption_input_', '');
+                        var newCaption = $(this).val();
+
+                        if (newCaption.trim() !== '') {
+                            var url = '{{ route('update_caption_ajax') }}';
+                            $.ajax({
+                                method: 'POST',
+                                url: url,
+                                dataType: "json",
+                                data: {
+                                    attachment_id: id,
+                                    new_caption: newCaption,
+                                    _token: token
+                                }, beforeSend: function () {
+                                    //-- Show loading image while execution of ajax request
+                                    $("div#divLoading").addClass('show');
+                                },
+                                success: function (data) {
+                                    if (data['result'] === "success") {
+                                        new Noty({
+                                            type: 'success',
+                                            layout: 'topRight',
+                                            text: 'Caption successfully updated!'
+                                        }).show();
+
+                                        //-- Hide visually attachment
+
+                                        $('#caption_input_box_' + id).hide();
+                                        $('#caption_text_' + id).text(newCaption.trim()).show();
+                                    } else {
+                                        new Noty({
+                                            type: 'error',
+                                            layout: 'bottomLeft',
+                                            text: data['error']
+                                        }).show();
+                                    }
+                                    //-- Hide loading image
+                                    $("div#divLoading").removeClass('show');
+                                }
+                            });
                         }
-                        //-- Hide loading image
-                        $("div#divLoading").removeClass('show');
                     }
                 });
-        });
 
-    </script>
+
+                //-- Delete attachment
+                $("button[id^='delete_attachment_']").click(function () {
+                    var attachment_id = $(this).attr('id').replace('delete_attachment_', '');
+
+                    $('#deleteModal_' + attachment_id).modal('toggle');
+                    var url = '{{ route('delete_attachment_ajax') }}';
+                    $.ajax({
+                        method: 'POST',
+                        url: url,
+                        dataType: "json",
+                        data: {
+                            attachment_id: attachment_id,
+                            _token: token
+                        }, beforeSend: function () {
+                            //-- Show loading image while execution of ajax request
+                            $("div#divLoading").addClass('show');
+                        },
+                        success: function (data) {
+                            if (data['result'] === "success") {
+                                new Noty({
+                                    type: 'success',
+                                    layout: 'topRight',
+                                    text: 'Attachment was successfully deleted!'
+                                }).show();
+
+                                //-- Hide visually attachment
+                                $('#attachment_block_' + attachment_id).hide();
+                            } else {
+                                new Noty({
+                                    type: 'error',
+                                    layout: 'bottomLeft',
+                                    text: data['error']
+                                }).show();
+                            }
+                            //-- Hide loading image
+                            $("div#divLoading").removeClass('show');
+                        }
+                    });
+                });
+
+            </script>
 @endsection

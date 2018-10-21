@@ -10790,3 +10790,60 @@ a.text-dark:focus {
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
+#divLoading {
+  display: none;
+}
+
+#divLoading.show {
+  display: block;
+  position: fixed;
+  z-index: 100;
+  background-color: #666;
+  opacity: 0.4;
+  background-repeat: no-repeat;
+  background-position: center;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  top: 0;
+}
+
+.attachment {
+  position: relative;
+  width: 80%;
+  max-width: 300px;
+  display: inline-block;
+}
+
+.attachment img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  max-height: 80px;
+}
+
+.attachment .btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  background-color: #ab1f25;
+  color: white;
+  font-size: 12px;
+  padding: 5px 5px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.inline_form form {
+  display: inline;
+}
+
+.attachment .btn:hover {
+  background-color: black;
+}
+

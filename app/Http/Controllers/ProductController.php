@@ -244,4 +244,28 @@ class ProductController extends Controller
 
         }
     }
+
+
+    public function ajaxUpdateCaption(Request $request)
+    {
+        $attachment_id = $request->attachment_id;
+        $new_caption = $request->new_caption;
+        $strError = "";
+        $result = "success";
+
+        $attachment = Attachment::find($attachment_id);
+        if (!empty($attachment)) {
+            $attachment->update([
+               'caption'=> $new_caption
+            ]);
+
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(array(
+            'result' => $result,
+            'error' => $strError
+        ));
+    }
+
 }
