@@ -62,7 +62,7 @@ class CategoryController
         if ($category != null) {
             $category->update($input);
             $category->save();
-            $data = "Category with ID " . $id . " was successfully updated.";
+            $data = $category;
             return response()->json(compact('data'), 200);
         } else {
             return Http::notFound($id,'category');

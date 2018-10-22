@@ -149,13 +149,19 @@ class ProductRepository
         return $arrThumbnails;
     }
 
-    static public function update(ProductCreateRequest $request,$id)
+    /**
+     * @param $request
+     * @param $id
+     * @return mixed
+     */
+    static public function update($request, $id)
     {
         $input = $request->all();
         $product = Product::findOrFail($id);
         $linkedCategories = $request->categories;
 
         unset($input['categories']);
+        unset($input['file']);
         $arrCategories = [];
         if (!empty($linkedCategories)) {
             $arrCategories = explode(";", $linkedCategories);

@@ -28,4 +28,8 @@ Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('{user_id}/categories/{id}', 'API\CategoryController@show');
     Route::post('{user_id}/categories/create', 'API\CategoryController@store');
     Route::resource('{user_id}/categories', 'API\CategoryController');
+
+    Route::get('{user_id}/attachments', 'API\AttachmentController@attachments');
+    Route::patch('{user_id}/attachments/{id}/caption/update', 'API\AttachmentController@updateCaption');
+    Route::resource('{user_id}/attachments', 'API\AttachmentController');
 });

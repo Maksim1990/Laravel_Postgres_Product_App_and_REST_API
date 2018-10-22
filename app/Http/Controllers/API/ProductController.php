@@ -17,12 +17,6 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
-    public function open()
-    {
-        $data = "This data is open and can be accessed without the client being authenticated";
-        return response()->json(compact('data'), 200);
-
-    }
 
     /**
      * @param $user_id
@@ -30,12 +24,16 @@ class ProductController extends Controller
      */
     public function products($user_id)
     {
-        //-- Load products from cache if available
-        $user = User::find($user_id);
-        $products = ProductRepository::getAll($user);
-        $data = $products;
+        if ($user_id == Auth::id()) {
+            //-- Load products from cache if available
+            $user = User::find($user_id);
+            $products = ProductRepository::getAll($user);
+            $data = $products;
 
-        return response()->json(compact('data'), 200);
+            return response()->json(compact('data'), 200);
+        } else {
+            return Http::notAuthorized($user_id);
+        }
     }
 
     /**
@@ -97,15 +95,15 @@ class ProductController extends Controller
     {
         $validator = $this->validator($request->all());
         if ($validator->fails()) {
-            $data=$validator->errors();
+            $data = $validator->errors();
             return response()->json(compact('data'), 422);
         }
 
         if ($user_id == Auth::id()) {
 
             $product = ProductRepository::store($request);
-            $result=AttachmentRepository::uploadFile($request,$product->id);
-            if($result==='success'){
+            $result = AttachmentRepository::uploadFile($request, $product->id);
+            if ($result === 'success') {
 
 
                 //-- Reset product list cache
@@ -116,17 +114,55 @@ class ProductController extends Controller
                     'thumbnails' => $arrThumbnails,
                 ];
                 return response()->json(compact('data'), 200);
-            }else{
+            } else {
                 $product->delete();
-                $data=$result;
+                $data = $result;
                 return response()->json(compact('data'), 422);
             }
-
-
         } else {
             return Http::notAuthorized($user_id);
         }
 
+    }
+
+    /**
+     * @param $user_id
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update($user_id, Request $request, $id)
+    {
+        $validator = $this->validator($request->all(),true);
+        if ($validator->fails()) {
+            $data = $validator->errors();
+            return response()->json(compact('data'), 422);
+        }
+        if ($user_id == Auth::id()) {
+            $product = ProductRepository::update($request, $id);
+            if($request->file('file')){
+                $result = AttachmentRepository::uploadFile($request, $product->id);
+            }else{
+                $result='success';
+            }
+
+            //-- Reset product list cache
+            CacheWrapper::resetCache(Auth::id(), 'product');
+            if ($result === 'success') {
+
+                $arrThumbnails = ProductRepository::getThumbnails($product);
+                $data = [
+                    'product' => $product,
+                    'thumbnails' => $arrThumbnails,
+                ];
+                return response()->json(compact('data'), 200);
+            } else {
+                $data = $result;
+                return response()->json(compact('data'), 422);
+            }
+        } else {
+            return Http::notAuthorized($user_id);
+        }
     }
 
     /**
@@ -139,18 +175,18 @@ class ProductController extends Controller
         try {
             $product = Product::where('user_id', $user_id)->where('id', $id)->first();
             if ($product != null) {
-                $result=ProductRepository::destroy($id);
+                $result = ProductRepository::destroy($id);
 
-                if($result==='success'){
-                    $data="Product with ID ".$id." and all relevant data were successfully deleted.";
+                if ($result === 'success') {
+                    $data = "Product with ID " . $id . " and all relevant data were successfully deleted.";
                     return response()->json(compact('data'), 200);
-                }else{
-                    $data=$result;
+                } else {
+                    $data = $result;
                     return response()->json(compact('data'), 500);
                 }
 
             } else {
-                return Http::notFound($id,'product');
+                return Http::notFound($id, 'product');
             }
 
         } catch (\Exception $e) {
@@ -162,18 +198,27 @@ class ProductController extends Controller
 
     /**
      * @param $data
+     * @param bool $update
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    private function validator($data)
+    private function validator($data, $update = false)
     {
-        return Validator::make($data, [
-            'name'=>'required',
-            'case_count'=>'required|integer',
-            'size'=>'required|integer',
-            'brand'=>'required',
-            'file'=>'required',
-            'categories'=>'required',
-        ]);
+        $arrRules = [
+            'name' => 'required',
+            'case_count' => 'required|integer',
+            'size' => 'required|integer',
+            'brand' => 'required',
+        ];
+
+        $arrExraCreateRules = [
+            'file' => 'required',
+            'categories' => 'required',
+        ];
+
+        if (!$update) {
+            $arrRules = array_merge($arrRules, $arrExraCreateRules);
+        }
+        return Validator::make($data, $arrRules);
     }
 
 }

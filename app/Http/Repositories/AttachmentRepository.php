@@ -42,7 +42,9 @@ class AttachmentRepository
                     unlink(public_path() . $thumbnail);
                 }
             }
-            $attachment->delete();
+            if(!$attachment->delete()){
+                $result = "Some error happened while deleting attachment";
+            }
         }
         $result=[
             'error'=>$error,
