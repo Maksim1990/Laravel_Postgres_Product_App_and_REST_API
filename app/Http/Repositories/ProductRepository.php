@@ -7,6 +7,7 @@
  */
 
 namespace App\Http\Repositories;
+
 use App\Attachment;
 use App\Category;
 use App\Classes\CacheWrapper;
@@ -26,7 +27,8 @@ class ProductRepository
      * @param User $user
      * @return mixed
      */
-    static public function getAll(User $user){
+    static public function getAll(User $user)
+    {
         //-- Load products from cache if available
         $products = Cache::tags(['product_' . $user->id])->get('products_list');
 
@@ -41,7 +43,8 @@ class ProductRepository
      * @param $product
      * @return array
      */
-    static public function buildCategoryLabelsArray($product){
+    static public function buildCategoryLabelsArray($product)
+    {
         $arrCategories = [];
         if (!empty($product->categories)) {
             foreach ($product->categories as $category) {
@@ -62,10 +65,11 @@ class ProductRepository
      * @param $userId
      * @return array
      */
-    static public function show($id, $userId){
-        $product = Product::where('id',$id)->where('user_id',$userId)->first();
+    static public function show($id, $userId)
+    {
+        $product = Product::where('id', $id)->where('user_id', $userId)->first();
         $arrThumbnails = array();
-        if($product!=null){
+        if ($product != null) {
             if (count($product->attachments) > 0) {
                 foreach ($product->attachments as $attachment) {
                     if ($attachment->import == 'N') {
@@ -79,14 +83,21 @@ class ProductRepository
             }
         }
 
-        $result=[
-            'product'=>$product,
-            'arrThumbnails'=>$arrThumbnails,
+        $result = [
+            'product' => $product,
+            'arrThumbnails' => $arrThumbnails,
         ];
         return $result;
     }
 
-    static public function import($file){
+    /**
+     * @param $file
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     */
+    static public function import($file)
+    {
         if (!($file->getClientSize() > 2100000)) {
 
 
@@ -179,10 +190,9 @@ class ProductRepository
                 //-- Reset product list cache
                 CacheWrapper::resetCache(Auth::id(), 'product');
 
-
-                    Session::flash('arrImport', $arrImport);
-                    Session::flash('arrErrors', $arrErrors);
-
+                //-- Store import result in session
+                Session::flash('arrImport', $arrImport);
+                Session::flash('arrErrors', $arrErrors);
 
                 //-- Remove file after import
                 unlink(storage_path('/app/public/upload/import/' . $name));
