@@ -3,15 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Category;
+use App\Interfaces\RedisInterface;
 use App\ProductCategoryPivot;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
-class CategoryController extends Controller
+class CategoryController extends Controller implements RedisInterface
 {
 
     public function index($id)
     {
-        $categories = Category::where('user_id', $id)->get();
+
+
+        //-- Load products from cache if available
+        $categories = Cache::tags(['category_' . Auth::id()])->get('products_list');
+
+        if (!$categories) {
+            $categories = Category::where('user_id', $id)->get();
+            Cache::tags(['category_' . Auth::id()])->put('category_list', $categories, 22 * 60);
+        }
+
         $arrSubCategories=[];
         if(!empty($categories)){
             foreach ($categories as $category){
@@ -22,6 +34,17 @@ class CategoryController extends Controller
         }
 
         return view('categories.index', compact('categories','arrSubCategories'));
+    }
+
+    /**
+     * @param $id
+     * @param $type
+     * @return string
+     */
+    public function resetCache($id,$type)
+    {
+        //-- Flush cached category's cache for current user
+        Cache::tags($type.'_' . $id)->flush();
     }
 
     /**
@@ -73,6 +96,9 @@ class CategoryController extends Controller
             'success' => $success,
             'error' => '',
         ];
+
+        //-- Reset category list cache
+        $this->resetCache(Auth::id(),'category');
 
         return response()->json([
             $result

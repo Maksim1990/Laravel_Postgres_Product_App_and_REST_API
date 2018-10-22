@@ -16,7 +16,8 @@ interface RedisInterface
      * Reset Redis Cache
      *
      * @param $id
+     * @param $type
      * @return mixed
      */
-    public function resetCache($id);
+    public function resetCache($id, $type);
 }

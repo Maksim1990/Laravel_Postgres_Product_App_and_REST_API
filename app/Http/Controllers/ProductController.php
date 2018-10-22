@@ -18,16 +18,18 @@ use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller implements RedisInterface
 {
+
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function index()
     {
         //-- Load products from cache if available
-        $products = Cache::tags(['products_' . Auth::id()])->get('products_list');
+        $products = Cache::tags(['product_' . Auth::id()])->get('products_list');
 
         if (!$products) {
             $products = Product::where('user_id', Auth::id())->get();
-            Cache::tags(['products_' . Auth::id()])->put('products_list', $products, 22 * 60);
-        } else {
-            // dd('FROM CACHE');
+            Cache::tags(['product_' . Auth::id()])->put('products_list', $products, 22 * 60);
         }
 
         return view('products.index', compact('products'));
@@ -35,26 +37,36 @@ class ProductController extends Controller implements RedisInterface
 
     /**
      * @param $id
+     * @param $type
      * @return string
      */
-    public function resetCache($id)
+    public function resetCache($id,$type)
     {
         //-- Flush cached product's cache for current user
-        Cache::tags('products_' . $id)->flush();
+        Cache::tags($type.'_' . $id)->flush();
     }
 
+    /**
+     * @param $type
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function import($type)
     {
-
         return view('products.import', compact('type'));
     }
 
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function upload()
     {
-
         return view('products.upload');
     }
 
+    /**
+     * @param $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function show($id)
     {
         $product = Product::findOrFail($id);
@@ -138,7 +150,7 @@ class ProductController extends Controller implements RedisInterface
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param ProductCreateRequest $request
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
@@ -183,7 +195,7 @@ class ProductController extends Controller implements RedisInterface
         $product->update($input);
 
         //-- Reset product list cache
-        $this->resetCache(Auth::id());
+        $this->resetCache(Auth::id(),'product');
 
         return redirect('products/' . $product->id);
     }
@@ -224,7 +236,7 @@ class ProductController extends Controller implements RedisInterface
         }
 
         //-- Reset product list cache
-        $this->resetCache(Auth::id());
+        $this->resetCache(Auth::id(),'product');
 
         return redirect()->route('index');
     }
@@ -244,7 +256,6 @@ class ProductController extends Controller implements RedisInterface
                     $parentCategory = Category::where('name', $categoryData[0])->first();
                 }
                 if (!empty($cat)) {
-
 
                     if ($categoryItem == null) {
                         $maxID = Category::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
@@ -270,6 +281,9 @@ class ProductController extends Controller implements RedisInterface
                 }
             }
         }
+
+        //-- Reset category list cache
+        $this->resetCache(Auth::id(),'category');
     }
 
     /**
@@ -305,7 +319,11 @@ class ProductController extends Controller implements RedisInterface
                 $attachment->delete();
             }
         }
+        //-- Reset category list cache
+        $this->resetCache(Auth::id(),'category');
 
+        //-- Reset product list cache
+        $this->resetCache(Auth::id(),'product');
 
         Session::flash('product_change', 'The product has been successfully deleted!');
         $product->delete();
@@ -386,12 +404,12 @@ class ProductController extends Controller implements RedisInterface
                                     $blnUploadStatus = false;
                                     if (in_array($extension, Config::IMAGES_EXTENSIONS)) {
                                         $blnUploadStatus = true;
-                                        $stsType = 'image';
+                                        $strType = 'image';
                                     }
 
                                     if (in_array($extension, Config::VIDEO_EXTENSIONS)) {
                                         $blnUploadStatus = true;
-                                        $stsType = 'video';
+                                        $strType = 'video';
                                     }
 
                                     if ($blnUploadStatus) {
@@ -403,7 +421,7 @@ class ProductController extends Controller implements RedisInterface
                                             'name' => $arrData[count($arrData) - 1],
                                             'size' => 0,
                                             'extension' => $extension,
-                                            'type' => $stsType,
+                                            'type' => $strType,
                                             'import' => 'Y',
                                             'path' => $arrLine['attachment_resource']
                                         ]);
@@ -416,6 +434,9 @@ class ProductController extends Controller implements RedisInterface
                             }
                             $arrImport['intLines']++;
                         });
+
+                        //-- Reset product list cache
+                        $this->resetCache(Auth::id(),'product');
 
                         Session::flash('arrImport', $arrImport);
                         Session::flash('arrErrors', $arrErrors);
