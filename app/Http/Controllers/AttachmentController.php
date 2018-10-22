@@ -19,7 +19,7 @@ class AttachmentController extends Controller
         $result = "success";
 
         $file = $request->file('file');
-        $extension = $file->getClientOriginalExtension();
+        $extension = strtolower($file->getClientOriginalExtension());
 
         $attachments = Attachment::where('product_id', $request->product_id)->get();
         if (count($attachments) < Config::ATTACHMENTS_ALLOWED) {

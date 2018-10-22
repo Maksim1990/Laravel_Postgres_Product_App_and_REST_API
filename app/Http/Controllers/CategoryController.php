@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Category;
+use App\Http\Repositories\CategoryRepository;
 use App\Interfaces\RedisInterface;
 use App\ProductCategoryPivot;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -15,23 +17,11 @@ class CategoryController extends Controller implements RedisInterface
     public function index($id)
     {
 
+        $user=User::find($id);
+        $arrData=CategoryRepository::getAll($user);
 
-        //-- Load products from cache if available
-        $categories = Cache::tags(['category_' . Auth::id()])->get('products_list');
-
-        if (!$categories) {
-            $categories = Category::where('user_id', $id)->get();
-            Cache::tags(['category_' . Auth::id()])->put('category_list', $categories, 22 * 60);
-        }
-
-        $arrSubCategories=[];
-        if(!empty($categories)){
-            foreach ($categories as $category){
-                    $subCategory = Category::where('parent',$category->id)->first();
-                    $arrSubCategories[$category->id]['name']=$subCategory!==null?$subCategory->name:0;
-                    $arrSubCategories[$category->id]['id']=$subCategory!==null?$subCategory->id:0;
-            }
-        }
+        $categories=$arrData['categories'];
+        $arrSubCategories=$arrData['arrSubCategories'];
 
         return view('categories.index', compact('categories','arrSubCategories'));
     }

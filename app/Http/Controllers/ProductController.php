@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Category;
 use App\Config\Config;
+use App\Http\Repositories\ProductRepository;
 use App\Http\Requests\ProductCreateRequest;
 use App\Interfaces\RedisInterface;
 use App\Product;
@@ -24,13 +25,8 @@ class ProductController extends Controller implements RedisInterface
      */
     public function index()
     {
-        //-- Load products from cache if available
-        $products = Cache::tags(['product_' . Auth::id()])->get('products_list');
-
-        if (!$products) {
-            $products = Product::where('user_id', Auth::id())->get();
-            Cache::tags(['product_' . Auth::id()])->put('products_list', $products, 22 * 60);
-        }
+        $user=Auth::user();
+        $products = ProductRepository::getAll($user);
 
         return view('products.index', compact('products'));
     }
@@ -69,46 +65,18 @@ class ProductController extends Controller implements RedisInterface
      */
     public function show($id)
     {
-        $product = Product::findOrFail($id);
-        $arrThumbnails = array();
-        if (count($product->attachments) > 0) {
-            foreach ($product->attachments as $attachment) {
-                if ($attachment->import == 'N') {
-                    if ($attachment->type == 'image') {
-                        $arrThumbnails[$attachment->id] = Croppa::url('/uploads/' . $attachment->name, 400, 400, ['resize']);
-                    } elseif ($attachment->type == 'video') {
-                        $arrThumbnails[$attachment->id] = getVideoThumbnail($attachment->name);
-                    }
-                }
-            }
-        }
+        $arrData=ProductRepository::show($id,Auth::id());
+
+        $product=$arrData['product'];
+        $arrThumbnails=$arrData['arrThumbnails'];
 
         //-- Get customized array of categories
-        $arrCategories = $this->buildCategoryLabelsArray($product);
+        $arrCategories = ProductRepository::buildCategoryLabelsArray($product);
 
         return view('products.show', compact('product', 'arrThumbnails', 'arrCategories'));
     }
 
-    /**
-     * @param $product
-     * @return array
-     */
-    public function buildCategoryLabelsArray($product)
-    {
-        $arrCategories = [];
-        if (!empty($product->categories)) {
-            foreach ($product->categories as $category) {
-                if ($category->parent == 0) {
-                    $arrCategories[] = $category->name;
-                } else {
-                    $parentCategory = Category::find($category->parent);
-                    $arrCategories[] = $parentCategory->name . ":" . $category->name;
-                }
-            }
-        }
 
-        return $arrCategories;
-    }
 
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -138,7 +106,7 @@ class ProductController extends Controller implements RedisInterface
             }
         }
         //-- Get customized array of categories
-        $arrCategories = $this->buildCategoryLabelsArray($product);
+        $arrCategories = ProductRepository::buildCategoryLabelsArray($product);
         $strCategories = "";
         if (!empty($arrCategories)) {
             $strCategories = implode(";", $arrCategories);

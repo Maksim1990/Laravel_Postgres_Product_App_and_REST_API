@@ -16,18 +16,6 @@
         .modal-dialog {
             max-width: 70%;
         }
-
-        .caption_input {
-            display: none;
-        }
-
-        .caption_text {
-            border-radius: 10px;
-        }
-
-        .caption_text:hover {
-            box-shadow: 5px 10px 8px #888888;
-        }
     </style>
 @endsection
 @section('content')
@@ -110,6 +98,7 @@
                                             <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal"
                                                     data-target="#deleteModal_{{$attachment->id}}">X
                                             </button>
+                                        </div>
                                         </div>
                                         @include('partials.modal_attachment_show',['attachment'=>$attachment])
                                         @include('partials.modal_attachment_delete',['attachment'=>$attachment->id,

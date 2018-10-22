@@ -19,7 +19,8 @@
         "php-ffmpeg/php-ffmpeg": "^0.13.0",
         "predis/predis": "^1.1",
         "rap2hpoutre/fast-excel": "^0.10.1",
-        "tightenco/ziggy": "v0.6.8.1"
+        "tightenco/ziggy": "v0.6.8.1",
+        "tymon/jwt-auth": "dev-develop"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",

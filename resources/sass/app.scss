@@ -109,3 +109,15 @@
 #categories_list>.w3-display-container{
   height:50px;border-radius: 10px;
 }
+
+.caption_input {
+  display: none;
+}
+
+.caption_text {
+  border-radius: 10px;
+}
+
+.caption_text:hover {
+  box-shadow: 5px 10px 8px #888888;
+}

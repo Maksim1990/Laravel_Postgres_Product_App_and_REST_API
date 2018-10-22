@@ -13,6 +13,17 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('register', 'UserController@register');
+Route::post('login', 'UserController@authenticate');
+Route::get('open', 'API\ProductController@open');
+
+Route::group(['middleware' => ['jwt.verify']], function() {
+    Route::get('user', 'UserController@getAuthenticatedUser');
+    Route::get('{user_id}/products', 'API\ProductController@products');
+    Route::get('{user_id}/products/{id}', 'API\ProductController@show');
+
+    Route::get('{user_id}/categories', 'API\CategoryController@categories');
+    Route::get('{user_id}/categories/{id}', 'API\CategoryController@show');
+    Route::post('{user_id}/categories/create', 'API\CategoryController@store');
+    Route::resource('{user_id}/categories', 'API\CategoryController');
 });

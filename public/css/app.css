@@ -10897,3 +10897,16 @@ a.text-dark:focus {
   border-radius: 10px;
 }
 
+.caption_input {
+  display: none;
+}
+
+.caption_text {
+  border-radius: 10px;
+}
+
+.caption_text:hover {
+  -webkit-box-shadow: 5px 10px 8px #888888;
+          box-shadow: 5px 10px 8px #888888;
+}
+
