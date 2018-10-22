@@ -191,39 +191,14 @@ class ProductController extends Controller implements RedisInterface
      */
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
-        $categories = $product->categories;
-        if (!empty($categories)) {
-            foreach ($categories as $category) {
-                ProductCategoryPivot::where('category_id', $category->id)->delete();
-                $category->delete();
-            }
+        $result=ProductRepository::destroy($id);
+
+        if($result==='success'){
+            Session::flash('product_change', 'The product has been successfully deleted!');
+        }else{
+            Session::flash('product_change', $result);
         }
 
-        if (!empty($product->attachments)) {
-            foreach ($product->attachments as $attachment) {
-                if (file_exists(public_path() . $attachment->path)) {
-                    Croppa::delete($attachment->path);
-                }
-
-                //-- Delete video thumbnails
-                if (in_array($attachment->extension, Config::VIDEO_EXTENSIONS)) {
-                    $thumbnail = getVideoThumbnail($attachment->name);
-                    if (file_exists(public_path() . $thumbnail)) {
-                        unlink(public_path() . $thumbnail);
-                    }
-                }
-                $attachment->delete();
-            }
-        }
-        //-- Reset category list cache
-        $this->resetCache(Auth::id(), 'category');
-
-        //-- Reset product list cache
-        $this->resetCache(Auth::id(), 'product');
-
-        Session::flash('product_change', 'The product has been successfully deleted!');
-        $product->delete();
         return redirect()->route('index');
     }
 

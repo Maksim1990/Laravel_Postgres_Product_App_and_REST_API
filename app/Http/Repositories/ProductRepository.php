@@ -64,6 +64,54 @@ class ProductRepository
 
     /**
      * @param $id
+     * @return string
+     */
+    static public function destroy($id){
+
+        $result='success';
+        $product = Product::findOrFail($id);
+        $categories = $product->categories;
+        if (!empty($categories)) {
+            foreach ($categories as $category) {
+                ProductCategoryPivot::where('category_id', $category->id)->delete();
+                $category->delete();
+            }
+        }
+
+        if (!empty($product->attachments)) {
+            foreach ($product->attachments as $attachment) {
+                if (file_exists(public_path() . $attachment->path)) {
+                    Croppa::delete($attachment->path);
+                }
+
+                //-- Delete video thumbnails
+                if (in_array($attachment->extension, Config::VIDEO_EXTENSIONS)) {
+                    $thumbnail = getVideoThumbnail($attachment->name);
+                    if (file_exists(public_path() . $thumbnail)) {
+                        unlink(public_path() . $thumbnail);
+                    }
+                }
+
+                if(!$attachment->delete()){
+                    $result='Some error happened while deleting attachment';
+                }
+            }
+        }
+        if(!$product->delete()){
+            $result='Some error happened while deleting product';
+        }
+
+        //-- Reset category list cache
+        CacheWrapper::resetCache(Auth::id(), 'category');
+
+        //-- Reset product list cache
+        CacheWrapper::resetCache(Auth::id(), 'product');
+
+        return $result;
+    }
+
+    /**
+     * @param $id
      * @param $userId
      * @return array
      */

@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Attachment;
-use App\Config\Config;
+
 use App\Http\Repositories\AttachmentRepository;
 use Illuminate\Http\Request;
-use Croppa;
 
 class AttachmentController extends Controller
 {
@@ -26,7 +24,6 @@ class AttachmentController extends Controller
     public function ajaxDeleteAttachment(Request $request)
     {
         $attachment_id = $request->attachment_id;
-
         $arrData=AttachmentRepository::delete($attachment_id);
 
         header('Content-Type: application/json');

@@ -125,6 +125,41 @@ class ProductController extends Controller
 
     }
 
+    /**
+     * @param $user_id
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy($user_id, $id)
+    {
+        try {
+            $product = Product::where('user_id', $user_id)->where('id', $id)->first();
+            if ($product != null) {
+                $result=ProductRepository::destroy($id);
+
+                if($result==='success'){
+                    $data="Product with ID ".$id." and all relevant data were successfully deleted.";
+                    return response()->json(compact('data'), 200);
+                }else{
+                    $data=$result;
+                    return response()->json(compact('data'), 500);
+                }
+
+            } else {
+                return Http::notFound($id,'product');
+            }
+
+        } catch (\Exception $e) {
+            $data = $e->getMessage();
+            return response()->json(compact('data'), 500);
+        }
+    }
+
+
+    /**
+     * @param $data
+     * @return \Illuminate\Contracts\Validation\Validator
+     */
     private function validator($data)
     {
         return Validator::make($data, [
