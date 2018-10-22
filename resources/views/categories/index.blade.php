@@ -16,7 +16,7 @@
                                 <th>Subcategory</th>
                                 <th></th>
                             </tr>
-                            @if(!empty($categories))
+                            @if(count($categories)>0)
                                 @foreach($categories as $category)
                                     <tr id="category_item_{{$category->id}}">
                                         <td>{{$category->id}}</td>
@@ -31,7 +31,11 @@
                                     </tr>
                                 @endforeach
                             @else
-                                <tr>No categories found</tr>
+                                <tr>
+                                    <td>
+                                        No categories found
+                                    </td>
+                                </tr>
                             @endif
                         </table>
                     </div>

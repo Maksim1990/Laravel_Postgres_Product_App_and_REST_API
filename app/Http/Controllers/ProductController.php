@@ -25,8 +25,8 @@ class ProductController extends Controller
         if (!$products) {
             $products = Product::where('user_id', Auth::id())->get();
             Cache::tags(['products_' . Auth::id()])->put('products_list', $products, 22 * 60);
-        }else{
-           // dd('FROM CACHE');
+        } else {
+            // dd('FROM CACHE');
         }
 
         return view('products.index', compact('products'));
@@ -171,13 +171,13 @@ class ProductController extends Controller
                     unset($arrCategories[$key]);
                     unset($arrCurrentCategories[$id]);
                 } else {
-                    ProductCategoryPivot::where('category_id',$id)->where('product_id',$product->id)->delete();
+                    ProductCategoryPivot::where('category_id', $id)->where('product_id', $product->id)->delete();
                 }
             }
         }
 
         if (!empty($arrCategories)) {
-            $this->handleNewCategoryList($product,$arrCategories);
+            $this->handleNewCategoryList($product, $arrCategories);
         }
 
         $input['barcode'] = generateBarcodeNumber(12);;
@@ -186,7 +186,7 @@ class ProductController extends Controller
         //-- Reset product list cache
         $this->resetCache(Auth::id());
 
-        return redirect('products/'.$product->id);
+        return redirect('products/' . $product->id);
     }
 
     /**
@@ -237,13 +237,16 @@ class ProductController extends Controller
      */
     public function handleNewCategoryList($product, $arrCategories)
     {
-            foreach ($arrCategories as $categoryName) {
-                $categoryData = explode(":", $categoryName);
-                foreach ($categoryData as $key => $cat) {
-                    $categoryItem = Category::where('name', $cat)->first();
-                    if ($key > 0) {
-                        $parentCategory = Category::where('name', $categoryData[0])->first();
-                    }
+        foreach ($arrCategories as $categoryName) {
+            $categoryData = explode(":", $categoryName);
+            foreach ($categoryData as $key => $cat) {
+                $categoryItem = Category::where('name', $cat)->first();
+                if ($key > 0) {
+                    $parentCategory = Category::where('name', $categoryData[0])->first();
+                }
+                if (!empty($cat)) {
+
+
                     if ($categoryItem == null) {
                         $maxID = Category::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
                         $categoryItem = Category::create([
@@ -265,6 +268,7 @@ class ProductController extends Controller
                             ]);
                         }
                     }
+                }
             }
         }
     }
@@ -278,10 +282,10 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        $categories=Category::where('product_id', $product->id)->get();
-        if(!empty($categories)){
-            foreach ($categories as $category){
-                ProductCategoryPivot::where('category_id',$category->id)->delete();
+        $categories = Category::where('product_id', $product->id)->get();
+        if (!empty($categories)) {
+            foreach ($categories as $category) {
+                ProductCategoryPivot::where('category_id', $category->id)->delete();
                 $category->delete();
             }
         }
