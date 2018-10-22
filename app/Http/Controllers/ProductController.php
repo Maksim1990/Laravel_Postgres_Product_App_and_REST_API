@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Category;
 use App\Config\Config;
 use App\Http\Requests\ProductCreateRequest;
+use App\Interfaces\RedisInterface;
 use App\Product;
 use App\ProductCategoryPivot;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ use App\Attachment;
 use Croppa;
 use Illuminate\Support\Facades\Cache;
 
-class ProductController extends Controller
+class ProductController extends Controller implements RedisInterface
 {
     public function index()
     {
@@ -38,10 +39,8 @@ class ProductController extends Controller
      */
     public function resetCache($id)
     {
-        //-- Flush cached header menu for current user
+        //-- Flush cached product's cache for current user
         Cache::tags('products_' . $id)->flush();
-
-        return "Cache was flushed!";
     }
 
     public function import($type)
