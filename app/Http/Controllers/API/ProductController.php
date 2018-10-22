@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Classes\CacheWrapper;
 use App\Exceptions\Http;
 use App\Http\Controllers\Controller;
+use App\Http\Repositories\AttachmentRepository;
 use App\Http\Repositories\ProductRepository;
+use App\Http\Requests\ProductCreateRequest;
 use App\Product;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
@@ -62,6 +66,9 @@ class ProductController extends Controller
      * @param $user_id
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
      */
     public function import($user_id, Request $request)
     {
@@ -79,6 +86,54 @@ class ProductController extends Controller
         } else {
             return Http::notAuthorized($user_id);
         }
+    }
+
+    /**
+     * @param $user_id
+     * @param ProductCreateRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function store($user_id, ProductCreateRequest $request)
+    {
+        $validator = $this->validator($request->all());
+        if ($validator->fails()) {
+            $data=$validator->errors();
+            return response()->json(compact('data'), 422);
+        }
+
+        if ($user_id == Auth::id()) {
+
+            $product = ProductRepository::store($request);
+            $result=AttachmentRepository::uploadFile($request,$product->id);
+            if($result==='success'){
+
+
+                //-- Reset product list cache
+                CacheWrapper::resetCache(Auth::id(), 'product');
+                $data = $product;
+                return response()->json(compact('data'), 200);
+            }else{
+                $product->delete();
+                $data=$result;
+                return response()->json(compact('data'), 422);
+            }
+
+
+        } else {
+            return Http::notAuthorized($user_id);
+        }
+
+    }
+
+    private function validator($data)
+    {
+        return Validator::make($data, [
+            'name'=>'required',
+            'case_count'=>'required|integer',
+            'size'=>'required|integer',
+            'brand'=>'required',
+            'file'=>'required',
+        ]);
     }
 
 }

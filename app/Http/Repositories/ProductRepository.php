@@ -12,7 +12,9 @@ use App\Attachment;
 use App\Category;
 use App\Classes\CacheWrapper;
 use App\Config\Config;
+use App\Http\Requests\ProductCreateRequest;
 use App\Product;
+use App\ProductCategoryPivot;
 use App\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -89,6 +91,91 @@ class ProductRepository
         ];
         return $result;
     }
+
+    /**
+     * @param ProductCreateRequest $request
+     * @return mixed
+     */
+    static public function store(ProductCreateRequest $request)
+    {
+        $input = $request->all();
+        $linkedCategories = $request->categories_form;
+        unset($input['categories_form']);
+        unset($input['file']);
+        $arrCategories = [];
+        if (!empty($linkedCategories)) {
+            $arrCategories = explode(";", $linkedCategories);
+        }
+
+        $user = Auth::user();
+        $input['user_id'] = $user->id;
+        $input['barcode'] = generateBarcodeNumber(12);
+
+        $maxID = Product::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
+        $input['id'] = $maxID != null ? $maxID->id + 1 : 1;
+        $product = Product::create($input);
+
+        if (!empty($arrCategories)) {
+            ProductRepository::handleNewCategoryList($product, $arrCategories);
+        }
+
+        $attachments = Attachment::where('product_id', 0)->get();
+        if (!empty($attachments)) {
+            foreach ($attachments as $attachment) {
+                $attachment->update([
+                    'product_id' => $product->id
+                ]);
+            }
+        }
+
+        return $product;
+    }
+
+
+    /**
+     * @param $product
+     * @param $arrCategories
+     */
+    static public function handleNewCategoryList($product, $arrCategories)
+    {
+        foreach ($arrCategories as $categoryName) {
+            $categoryData = explode(":", $categoryName);
+            foreach ($categoryData as $key => $cat) {
+                $categoryItem = Category::where('name', $cat)->first();
+                if ($key > 0) {
+                    $parentCategory = Category::where('name', $categoryData[0])->first();
+                }
+                if (!empty($cat)) {
+
+                    if ($categoryItem == null) {
+                        $maxID = Category::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
+                        $categoryItem = Category::create([
+                            'id' => $maxID != null ? $maxID->id + 1 : 1,
+                            'user_id' => Auth::id(),
+                            'name' => $cat,
+                            'parent' => $key == 0 ? $key : $parentCategory->id,
+                        ]);
+                    }
+
+                    if ($key == (count($categoryData) - 1)) {
+                        $categoryLink = ProductCategoryPivot::where('product_id', $product->id)->where('category_id', $categoryItem->id)->first();
+                        $maxID = ProductCategoryPivot::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
+                        if ($categoryLink === null) {
+                            ProductCategoryPivot::create([
+                                'id' => $maxID != null ? $maxID->id + 1 : 1,
+                                'product_id' => $product->id,
+                                'category_id' => $categoryItem->id,
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        //-- Reset category list cache
+        CacheWrapper::resetCache(Auth::id(), 'category');
+    }
+
 
     /**
      * @param $file

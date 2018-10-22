@@ -87,7 +87,7 @@ class CategoryController
                     'parent'=>isset($input['parent'])?$input['parent']:0,
                 ]);
 
-                $data = "Category with ID " . $category->id . " was successfully created.";
+                $data = $category;
                 return response()->json(compact('data'), 200);
             }else{
                 return Http::fieldRequired('name');

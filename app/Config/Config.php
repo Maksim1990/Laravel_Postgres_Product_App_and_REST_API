@@ -17,4 +17,7 @@ class Config extends Model
     //-- Maximum number of allowed attachments per each product
     const ATTACHMENTS_ALLOWED=9;
 
+
+    const UPLOAD_FOLDER='/uploads/';
+
 }
