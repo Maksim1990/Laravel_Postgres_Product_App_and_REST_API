@@ -44,7 +44,7 @@ class CategoryController
 
             return response()->json(compact('data'), 200);
         } else {
-            return Http::notFound($id);
+            return Http::notFound($id,'category');
         }
     }
 
@@ -65,7 +65,7 @@ class CategoryController
             $data = "Category with ID " . $id . " was successfully updated.";
             return response()->json(compact('data'), 200);
         } else {
-            return Http::notFound($id);
+            return Http::notFound($id,'category');
         }
     }
 
@@ -97,7 +97,7 @@ class CategoryController
             return Http::notAuthorized($user_id);
         }
     }
-    
+
 
     /**
      * @param $user_id
@@ -115,7 +115,7 @@ class CategoryController
                 $data = 'Category with ID ' . $id . ' and relevant data was deleted';
                 return response()->json(compact('data'), 200);
             } else {
-                return Http::notFound($id);
+                return Http::notFound($id,'category');
             }
 
         } catch (\Exception $e) {

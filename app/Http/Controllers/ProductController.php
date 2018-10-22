@@ -12,7 +12,7 @@ use App\ProductCategoryPivot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Rap2hpoutre\FastExcel\FastExcel;
+
 use App\Attachment;
 use Croppa;
 use Illuminate\Support\Facades\Cache;
@@ -25,7 +25,7 @@ class ProductController extends Controller implements RedisInterface
      */
     public function index()
     {
-        $user=Auth::user();
+        $user = Auth::user();
         $products = ProductRepository::getAll($user);
 
         return view('products.index', compact('products'));
@@ -36,10 +36,10 @@ class ProductController extends Controller implements RedisInterface
      * @param $type
      * @return string
      */
-    public function resetCache($id,$type)
+    public function resetCache($id, $type)
     {
         //-- Flush cached product's cache for current user
-        Cache::tags($type.'_' . $id)->flush();
+        Cache::tags($type . '_' . $id)->flush();
     }
 
     /**
@@ -65,17 +65,16 @@ class ProductController extends Controller implements RedisInterface
      */
     public function show($id)
     {
-        $arrData=ProductRepository::show($id,Auth::id());
+        $arrData = ProductRepository::show($id, Auth::id());
 
-        $product=$arrData['product'];
-        $arrThumbnails=$arrData['arrThumbnails'];
+        $product = $arrData['product'];
+        $arrThumbnails = $arrData['arrThumbnails'];
 
         //-- Get customized array of categories
         $arrCategories = ProductRepository::buildCategoryLabelsArray($product);
 
         return view('products.show', compact('product', 'arrThumbnails', 'arrCategories'));
     }
-
 
 
     /**
@@ -163,7 +162,7 @@ class ProductController extends Controller implements RedisInterface
         $product->update($input);
 
         //-- Reset product list cache
-        $this->resetCache(Auth::id(),'product');
+        $this->resetCache(Auth::id(), 'product');
 
         return redirect('products/' . $product->id);
     }
@@ -204,7 +203,7 @@ class ProductController extends Controller implements RedisInterface
         }
 
         //-- Reset product list cache
-        $this->resetCache(Auth::id(),'product');
+        $this->resetCache(Auth::id(), 'product');
 
         return redirect()->route('index');
     }
@@ -251,7 +250,7 @@ class ProductController extends Controller implements RedisInterface
         }
 
         //-- Reset category list cache
-        $this->resetCache(Auth::id(),'category');
+        $this->resetCache(Auth::id(), 'category');
     }
 
     /**
@@ -263,7 +262,7 @@ class ProductController extends Controller implements RedisInterface
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        $categories = Category::where('product_id', $product->id)->get();
+        $categories = $product->categories;
         if (!empty($categories)) {
             foreach ($categories as $category) {
                 ProductCategoryPivot::where('category_id', $category->id)->delete();
@@ -288,10 +287,10 @@ class ProductController extends Controller implements RedisInterface
             }
         }
         //-- Reset category list cache
-        $this->resetCache(Auth::id(),'category');
+        $this->resetCache(Auth::id(), 'category');
 
         //-- Reset product list cache
-        $this->resetCache(Auth::id(),'product');
+        $this->resetCache(Auth::id(), 'product');
 
         Session::flash('product_change', 'The product has been successfully deleted!');
         $product->delete();
@@ -314,107 +313,9 @@ class ProductController extends Controller implements RedisInterface
         //-- Check file type
         if ($type === 'csv') {
             if ($file = $request->file('file')) {
-                if (!($file->getClientSize() > 2100000)) {
-
-
-                    $name = time() . $file->getClientOriginalName();
-                    //-- Temporarily save uploaded file
-                    request()->file('file')->storeAs(
-                        'public/upload/import/', $name
-                    );
-
-                    $arrImport['intLines'] = 1;
-                    $arrImport['intImportedLines'] = 0;
-                    $arrImport['arrResourcesRejected'] = [];
-                    $arrRequiredFields = ['name', 'barcode', 'brand', 'size', 'case_count'];
-                    $arrErrors = [];
-
-                    if (file_exists(storage_path('/app/public/upload/import/' . $name))) {
-
-                        (new FastExcel)->import(storage_path('/app/public/upload//import/' . $name), function ($line) use (&$arrErrors, &$arrImport, $arrRequiredFields) {
-                            $arrLine = [];
-                            foreach ($line as $key => $val) {
-                                $arrKeys = explode(";", $key);
-                                $arrValues = explode(";", $val);
-                                $arrLine = array_combine($arrKeys, $arrValues);
-                            }
-                            $blnStatus = true;
-                            foreach ($arrRequiredFields as $strField) {
-                                if (empty($arrLine[$strField])) {
-                                    $blnStatus = false;
-                                    $arrErrors[$arrImport['intLines'] + 1] = " field '" . $strField . "' can't be empty";
-                                }
-                            }
-
-                            if ($blnStatus && !empty($arrLine['barcode']) && Product::where('barcode', $arrLine['barcode'])->first() !== null) {
-                                $blnStatus = false;
-                                $arrErrors[$arrImport['intLines'] + 1] = " product with barcode " . $arrLine['barcode'] . " already exist";
-                            }
-
-                            if ($blnStatus) {
-                                $arrImport['intImportedLines']++;
-                                $maxID = Product::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
-                                $product = Product::create([
-                                    'id' => $maxID != null ? $maxID->id + 1 : 1,
-                                    'user_id' => Auth::id(),
-                                    'name' => $arrLine['name'],
-                                    'barcode' => $arrLine['barcode'],
-                                    'description' => $arrLine['description'],
-                                    'brand' => $arrLine['brand'],
-                                    'size' => $arrLine['size'],
-                                    'case_count' => $arrLine['case_count']
-                                ]);
-
-                                if (!empty($arrLine['attachment_resource'])) {
-                                    $arrData = explode("/", $arrLine['attachment_resource']);
-                                    $extension = substr($arrLine['attachment_resource'], -3);
-
-                                    $blnUploadStatus = false;
-                                    if (in_array($extension, Config::IMAGES_EXTENSIONS)) {
-                                        $blnUploadStatus = true;
-                                        $strType = 'image';
-                                    }
-
-                                    if (in_array($extension, Config::VIDEO_EXTENSIONS)) {
-                                        $blnUploadStatus = true;
-                                        $strType = 'video';
-                                    }
-
-                                    if ($blnUploadStatus) {
-                                        $maxID = Attachment::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
-                                        Attachment::create([
-                                            'id' => $maxID != null ? $maxID->id + 1 : 1,
-                                            'user_id' => Auth::id(),
-                                            'product_id' => $product->id,
-                                            'name' => $arrData[count($arrData) - 1],
-                                            'size' => 0,
-                                            'extension' => $extension,
-                                            'type' => $strType,
-                                            'import' => 'Y',
-                                            'path' => $arrLine['attachment_resource']
-                                        ]);
-                                    } else {
-                                        $arrImport['arrResourcesRejected'][] = $arrLine['attachment_resource'];
-                                    }
-                                }
-
-                                return $product;
-                            }
-                            $arrImport['intLines']++;
-                        });
-
-                        //-- Reset product list cache
-                        $this->resetCache(Auth::id(),'product');
-
-                        Session::flash('arrImport', $arrImport);
-                        Session::flash('arrErrors', $arrErrors);
-                        //-- Remove file after import
-                        unlink(storage_path('/app/public/upload/import/' . $name));
-
-                        return redirect()->route('index');
-                    }
-                }
+                ProductRepository::import($file);
             }
+            return redirect()->route('index');
         }
     }
 

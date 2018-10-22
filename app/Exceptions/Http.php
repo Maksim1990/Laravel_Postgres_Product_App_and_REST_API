@@ -14,11 +14,12 @@ class Http
 
     /**
      * @param $id
+     * @param $type
      * @return \Illuminate\Http\JsonResponse
      */
-    static public function notFound($id)
+    static public function notFound($id,$type)
     {
-        $data = 'Category with ID ' . $id . ' not found';
+        $data = lcfirst($type).' with ID ' . $id . ' not found';
         return response()->json(compact('data'), 404);
     }
 
