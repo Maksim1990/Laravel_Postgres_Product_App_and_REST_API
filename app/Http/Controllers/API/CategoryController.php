@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Category;
+use App\Exceptions\Http;
 use App\Http\Repositories\CategoryRepository;
 use App\ProductCategoryPivot;
 use App\User;
@@ -43,7 +44,7 @@ class CategoryController
 
             return response()->json(compact('data'), 200);
         } else {
-            return $this->notFound($id);
+            return Http::notFound($id);
         }
     }
 
@@ -64,7 +65,7 @@ class CategoryController
             $data = "Category with ID " . $id . " was successfully updated.";
             return response()->json(compact('data'), 200);
         } else {
-            return $this->notFound($id);
+            return Http::notFound($id);
         }
     }
 
@@ -89,39 +90,14 @@ class CategoryController
                 $data = "Category with ID " . $category->id . " was successfully created.";
                 return response()->json(compact('data'), 200);
             }else{
-                return $this->fieldRequired('name');
+                return Http::fieldRequired('name');
             }
 
         } else {
-            return $this->notAuthorized($user_id);
+            return Http::notAuthorized($user_id);
         }
     }
-
-    /**
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function notFound($id)
-    {
-        $data = 'Category with ID ' . $id . ' not found';
-        return response()->json(compact('data'), 404);
-    }
-
-    /**
-     * @param $field
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function fieldRequired($field)
-    {
-        $data = 'Field ' . $field . ' id required';
-        return response()->json(compact('data'), 422);
-    }
-
-    public function notAuthorized($id)
-    {
-        $data = 'Not authorized to perform this action with user ID ' . $id;
-        return response()->json(compact('data'), 401);
-    }
+    
 
     /**
      * @param $user_id
@@ -139,7 +115,7 @@ class CategoryController
                 $data = 'Category with ID ' . $id . ' and relevant data was deleted';
                 return response()->json(compact('data'), 200);
             } else {
-                return $this->notFound($id);
+                return Http::notFound($id);
             }
 
         } catch (\Exception $e) {
