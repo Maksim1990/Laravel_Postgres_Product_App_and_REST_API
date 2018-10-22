@@ -14,12 +14,14 @@
                     <input type="hidden" name="categories_form" id="categories_form" value="{{old('categories_form')}}">
                     <div class="group-form">
                         {!! Form::label('name','Name:') !!}
-                        {!! Form::text('name', null, ['class'=>'form-control']) !!}
+                        <span class="w3-text-red tooltip_cust"><i class="fas fa-info-circle"></i><span class="tooltiptext">{{\App\Config\Config::ALLOWED_CHARACTERS_INFO}}</span></span>
+                        {!! Form::text('name', null, ['class'=>'form-control','onkeypress'=>"return isNumberKey(event);"]) !!}
                     </div>
 
                     <div class="group-form">
                         {!! Form::label('brand','Brand:') !!}
-                        {!! Form::text('brand', null, ['class'=>'form-control']) !!}
+                        <span class="w3-text-red tooltip_cust"><i class="fas fa-info-circle"></i><span class="tooltiptext">{{\App\Config\Config::ALLOWED_CHARACTERS_INFO}}</span></span>
+                        {!! Form::text('brand', null, ['class'=>'form-control','onkeypress'=>"return isNumberKey(event);"]) !!}
                     </div>
 
                     <div class="group-form">
@@ -35,8 +37,8 @@
 
                     <div class="group-form">
                         {!! Form::label('description','Description:') !!}
-
-                        {!! Form::textarea('description', null, ['class'=>'form-control','id'=>'code']) !!}
+                        <span class="w3-text-red tooltip_cust"><i class="fas fa-info-circle"></i><span class="tooltiptext">{{\App\Config\Config::ALLOWED_CHARACTERS_INFO}}</span></span>
+                        {!! Form::textarea('description', null, ['class'=>'form-control','id'=>'code','onkeypress'=>"return isNumberKey(event);"]) !!}
                         <br>
                     </div>
                     <a href="{{route('index')}}" class="btn btn-success">Cancel</a>
@@ -86,6 +88,17 @@
                 }
             }
         };
+        function isNumberKey(evt)
+        {
+            var charCode = (evt.which) ? evt.which : event.keyCode;
 
+            var arrAllowedChars=[
+               47,60,61,62
+            ];
+            if(arrAllowedChars.includes(charCode)){
+                return false;
+            }
+            return true;
+        }
     </script>
 @endsection

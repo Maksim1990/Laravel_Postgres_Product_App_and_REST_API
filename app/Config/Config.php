@@ -20,4 +20,7 @@ class Config extends Model
 
     const UPLOAD_FOLDER='/uploads/';
 
+
+    const ALLOWED_CHARACTERS_INFO='ATTENTION! Following characters are not allowed <>=/';
+
 }
