@@ -113,6 +113,7 @@
             </div>
         </div>
         <input type="hidden" id="category_delete" value="">
+        <input type="hidden" id="product_id" value="{{$product->id}}">
         @include('partials.modal_attachment_delete',['attachment'=>'category',
         'action'=>'unlink',
         'slug'=>'category'])

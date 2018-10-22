@@ -125,8 +125,8 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'categories' => [
+            'required' => 'Categories are required field.Categories should be separated with semicolon(;)[Example: CATEGORY1;CATEGORY2]. Subcategories should be separated with colon(:)[Example: CATEGORY:SUBCATEGORY]',
         ],
     ],
 

@@ -10,7 +10,6 @@
             dataType: "json",
             async: false,
             data: {
-                product_id: 0,
                 strExcludeCat: strExcludeCat,
                 _token: token
             },
@@ -146,7 +145,36 @@
         }
         var strCategories = oldSelectedCategories + strCategories;
         $('#categories_form').val(strCategories.trim());
-
-        this.submit();
+        var blnStatus = checkIfAnyResourceAttached();
+        console.log(blnStatus);
+        if (blnStatus) {
+            this.submit();
+        }else{
+            new Noty({
+                type: 'error',
+                layout: 'bottomLeft',
+                text: 'At least one file should be attached to product'
+            }).show();
+        }
     });
+
+    function checkIfAnyResourceAttached() {
+        var url = '{{ route('check_attached_resource_ajax') }}';
+        var product_id = $('#product_id').val();
+        var status = false;
+        $.ajax({
+            method: 'POST',
+            url: url,
+            dataType: "json",
+            async: false,
+            data: {
+                product_id: product_id,
+                _token: token
+            },
+            success: function (data) {
+                status = data[0]['status'];
+            }
+        });
+        return status;
+    }
 </script>

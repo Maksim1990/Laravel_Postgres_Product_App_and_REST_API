@@ -90,10 +90,10 @@ class ProductController extends Controller
 
     /**
      * @param $user_id
-     * @param ProductCreateRequest $request
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store($user_id, ProductCreateRequest $request)
+    public function store($user_id, Request $request)
     {
         $validator = $this->validator($request->all());
         if ($validator->fails()) {
@@ -110,7 +110,11 @@ class ProductController extends Controller
 
                 //-- Reset product list cache
                 CacheWrapper::resetCache(Auth::id(), 'product');
-                $data = $product;
+                $arrThumbnails = ProductRepository::getThumbnails($product);
+                $data = [
+                    'product' => $product,
+                    'thumbnails' => $arrThumbnails,
+                ];
                 return response()->json(compact('data'), 200);
             }else{
                 $product->delete();

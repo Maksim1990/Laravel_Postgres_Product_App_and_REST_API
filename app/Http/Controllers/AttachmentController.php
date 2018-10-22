@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Attachment;
 use App\Http\Repositories\AttachmentRepository;
 use Illuminate\Http\Request;
 
@@ -31,5 +32,28 @@ class AttachmentController extends Controller
             'result' => $arrData['result'],
             'error' => $arrData['error']
         ));
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ajaxCheckResources(Request $request)
+    {
+        $product_id = $request->product_id;
+        $status=true;
+        $attachments = Attachment::where('product_id',$product_id)->get();
+
+        if(count($attachments)==0){
+            $status=false;
+        }
+
+        $result = [
+            'status' => $status
+        ];
+
+        return response()->json([
+            $result
+        ]);
     }
 }

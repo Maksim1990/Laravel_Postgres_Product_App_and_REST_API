@@ -118,6 +118,20 @@ class ProductRepository
     static public function show($id, $userId)
     {
         $product = Product::where('id', $id)->where('user_id', $userId)->first();
+        $arrThumbnails = self::getThumbnails($product);
+
+        $result = [
+            'product' => $product,
+            'arrThumbnails' => $arrThumbnails,
+        ];
+        return $result;
+    }
+
+    /**
+     * @param $product
+     * @return array
+     */
+    static public function getThumbnails($product){
         $arrThumbnails = array();
         if ($product != null) {
             if (count($product->attachments) > 0) {
@@ -132,12 +146,7 @@ class ProductRepository
                 }
             }
         }
-
-        $result = [
-            'product' => $product,
-            'arrThumbnails' => $arrThumbnails,
-        ];
-        return $result;
+        return $arrThumbnails;
     }
 
     static public function update(ProductCreateRequest $request,$id)
@@ -188,10 +197,10 @@ class ProductRepository
     }
 
     /**
-     * @param ProductCreateRequest $request
+     * @param $request
      * @return mixed
      */
-    static public function store(ProductCreateRequest $request)
+    static public function store($request)
     {
         $input = $request->all();
         $linkedCategories = $request->categories;
@@ -235,6 +244,11 @@ class ProductRepository
     {
         foreach ($arrCategories as $categoryName) {
             $categoryData = explode(":", $categoryName);
+
+            //-- If try to insert 3rd level or more subcategory than handle it as simple category name
+            if(count($categoryData)>2){
+                $categoryData=[$categoryName];
+            }
             foreach ($categoryData as $key => $cat) {
                 $categoryItem = Category::where('name', $cat)->first();
                 if ($key > 0) {

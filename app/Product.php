@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     protected $primaryKey = 'id';
-    protected $guarded = [];
+    protected $guarded = ['attachments'];
 
     public function attachments(){
         return $this->hasMany('App\Attachment');

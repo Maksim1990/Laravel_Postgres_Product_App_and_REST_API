@@ -43,12 +43,8 @@ class CategoryController extends Controller implements RedisInterface
      */
     public function ajaxGetCategories(Request $request)
     {
-        $product_id = $request->product_id;
         $strExcludeCat = $request->strExcludeCat;
 
-        if (!empty($product_id)) {
-
-        }
         $categories = Category::where('parent', 0)->where('name', '!=', $strExcludeCat)->get();
         $arrCategories = [];
         if (!empty($categories)) {
