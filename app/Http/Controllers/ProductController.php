@@ -123,47 +123,7 @@ class ProductController extends Controller implements RedisInterface
      */
     public function update(ProductCreateRequest $request, $id)
     {
-        $input = $request->all();
-        $product = Product::findOrFail($id);
-        $linkedCategories = $request->categories_form;
-
-        unset($input['categories_form']);
-        $arrCategories = [];
-        if (!empty($linkedCategories)) {
-            $arrCategories = explode(";", $linkedCategories);
-        }
-
-        $arrCurrentCategories = [];
-        if (!empty($product->categories)) {
-            foreach ($product->categories as $category) {
-                if ($category->parent == 0) {
-                    $arrCurrentCategories[$category->id] = $category->name;
-                }
-            }
-        }
-
-
-        if (!empty($arrCurrentCategories)) {
-            foreach ($arrCurrentCategories as $id => $categoryName) {
-                if (($key = array_search($categoryName, $arrCategories)) !== false) {
-                    unset($arrCategories[$key]);
-                    unset($arrCurrentCategories[$id]);
-                } else {
-                    ProductCategoryPivot::where('category_id', $id)->where('product_id', $product->id)->delete();
-                }
-            }
-        }
-
-        if (!empty($arrCategories)) {
-            ProductRepository::handleNewCategoryList($product, $arrCategories);
-        }
-
-        $input['barcode'] = generateBarcodeNumber(12);;
-        $product->update($input);
-
-        //-- Reset product list cache
-        $this->resetCache(Auth::id(), 'product');
-
+        $product=ProductRepository::update($request,$id);
         return redirect('products/' . $product->id);
     }
 

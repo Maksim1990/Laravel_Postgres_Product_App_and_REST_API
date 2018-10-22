@@ -25,7 +25,7 @@
             <div class="col-md-8">
                 <div class="inline_form">
                     {!! Form::model($product,['method'=>'PATCH','id'=>"product_form",'action'=>['ProductController@update',$product->id], 'files'=>true])!!}
-                    <input type="hidden" name="categories_form" id="categories_form"
+                    <input type="hidden" name="categories" id="categories_form"
                            value="{{old('categories_form')?old('categories_form'):$strCategories}}">
                     <div class="group-form">
                         {!! Form::label('name','Name:') !!}

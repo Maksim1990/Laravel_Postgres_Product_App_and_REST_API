@@ -11,7 +11,7 @@
             <div class="col-md-8">
                 <div class="inline_form w3-margin-bottom">
                     {!! Form::open(['method'=>'POST', 'id'=>"product_form",'action'=>['ProductController@store','id'=>Auth::id()], 'files'=>true])!!}
-                    <input type="hidden" name="categories_form" id="categories_form" value="{{old('categories_form')}}">
+                    <input type="hidden" name="categories" id="categories_form" value="{{old('categories_form')}}">
                     <div class="group-form">
                         {!! Form::label('name','Name:') !!}
                         <span class="w3-text-red tooltip_cust"><i class="fas fa-info-circle"></i><span class="tooltiptext">{{\App\Config\Config::ALLOWED_CHARACTERS_INFO}}</span></span>

@@ -168,6 +168,7 @@ class ProductController extends Controller
             'size'=>'required|integer',
             'brand'=>'required',
             'file'=>'required',
+            'categories'=>'required',
         ]);
     }
 

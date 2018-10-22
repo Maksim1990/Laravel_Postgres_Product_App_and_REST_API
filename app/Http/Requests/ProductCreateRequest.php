@@ -27,7 +27,8 @@ class ProductCreateRequest extends FormRequest
             'name'=>'required',
             'case_count'=>'required|integer',
             'size'=>'required|integer',
-            'brand'=>'required'
+            'brand'=>'required',
+            'categories'=>'required',
         ];
     }
 }
