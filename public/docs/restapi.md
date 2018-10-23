@@ -94,4 +94,5 @@ file
 4) Delete specific attachment
 - ROUTE: **/api/{user_id}/attachments/{id}**
 - METHOD: **DELETE**
+
 ![Mockup for feature A](https://github.com/Maksim1990/Laravel_Postgres_Product_App_and_REST_API/blob/master/public/example/API/API14.PNG)
