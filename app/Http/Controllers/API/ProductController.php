@@ -22,7 +22,7 @@ class ProductController extends Controller
      * @param $user_id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function products($user_id)
+    public function index($user_id)
     {
         if ($user_id == Auth::id()) {
             //-- Load products from cache if available
@@ -133,11 +133,12 @@ class ProductController extends Controller
      */
     public function update($user_id, Request $request, $id)
     {
-        $validator = $this->validator($request->all(),true);
-        if ($validator->fails()) {
-            $data = $validator->errors();
-            return response()->json(compact('data'), 422);
-        }
+//        $validator = $this->validator($request->all(),true);
+//        if ($validator->fails()) {
+//            $data = $validator->errors();
+//            return response()->json(compact('data'), 422);
+//        }
+
         if ($user_id == Auth::id()) {
             $product = ProductRepository::update($request, $id);
             if($request->file('file')){

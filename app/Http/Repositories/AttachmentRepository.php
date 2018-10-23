@@ -74,7 +74,7 @@ class AttachmentRepository
                         $name = time() . "_" . $file->getClientOriginalName();
                         $maxID = Attachment::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
                         $attachment = Attachment::create([
-                            'id' => $maxID != null ? $maxID->id + 1 : 1,
+//                            'id' => $maxID != null ? $maxID->id + 1 : 1,
                             'user_id' => Auth::id(),
                             'product_id' => empty($product_id) ? $request->product_id : $product_id,
                             'name' => $name,

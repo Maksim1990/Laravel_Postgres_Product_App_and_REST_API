@@ -16,7 +16,7 @@ class CategoryController
      * @param $user_id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function categories($user_id)
+    public function index($user_id)
     {
         //-- Load products from cache if available
         $user = User::find($user_id);

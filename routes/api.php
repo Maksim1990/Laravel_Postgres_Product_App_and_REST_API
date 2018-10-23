@@ -18,18 +18,19 @@ Route::post('login', 'UserController@authenticate');
 
 Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('user', 'UserController@getAuthenticatedUser');
-    Route::get('{user_id}/products', 'API\ProductController@products');
+    Route::get('{user_id}/products', 'API\ProductController@index');
     Route::get('{user_id}/products/{id}', 'API\ProductController@show');
     Route::post('{user_id}/products/import', 'API\ProductController@import');
     Route::post('{user_id}/products/create', 'API\ProductController@store');
+    Route::post('{user_id}/products/{id}', 'API\ProductController@update');
     Route::resource('{user_id}/products', 'API\ProductController');
 
-    Route::get('{user_id}/categories', 'API\CategoryController@categories');
+    Route::get('{user_id}/categories', 'API\CategoryController@index');
     Route::get('{user_id}/categories/{id}', 'API\CategoryController@show');
     Route::post('{user_id}/categories/create', 'API\CategoryController@store');
     Route::resource('{user_id}/categories', 'API\CategoryController');
 
-    Route::get('{user_id}/attachments', 'API\AttachmentController@attachments');
+    Route::get('{user_id}/attachments', 'API\AttachmentController@index');
     Route::patch('{user_id}/attachments/{id}/caption/update', 'API\AttachmentController@updateCaption');
     Route::resource('{user_id}/attachments', 'API\AttachmentController');
 });

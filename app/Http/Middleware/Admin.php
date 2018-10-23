@@ -20,7 +20,14 @@ class Admin
      */
     public function handle($request, Closure $next)
     {
-        if(Route::currentRouteName()!=='create'){
+        $arrExcludeRoutes=[
+            'create',
+            'get_categories_ajax',
+            'check_attached_resource_ajax',
+            'products.store',
+            'attachment.store',
+        ];
+        if(!in_array(Route::currentRouteName(),$arrExcludeRoutes)){
             $this->removeDeprecatedAttachments();
         }
         if (Auth::check()) {

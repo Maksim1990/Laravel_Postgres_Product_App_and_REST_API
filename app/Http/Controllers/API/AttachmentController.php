@@ -15,7 +15,7 @@ class AttachmentController extends Controller
      * @param $user_id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function attachments($user_id)
+    public function index($user_id)
     {
         if ($user_id == Auth::id()) {
             //-- Load products from cache if available

@@ -74,7 +74,7 @@ class ProductRepository
         if (!empty($categories)) {
             foreach ($categories as $category) {
                 ProductCategoryPivot::where('category_id', $category->id)->delete();
-                $category->delete();
+                //$category->delete();
             }
         }
 
@@ -318,12 +318,7 @@ class ProductRepository
             if (file_exists(storage_path('/app/public/upload/import/' . $name))) {
 
                 (new FastExcel)->import(storage_path('/app/public/upload//import/' . $name), function ($line) use (&$arrErrors, &$arrImport, $arrRequiredFields) {
-                    $arrLine = [];
-                    foreach ($line as $key => $val) {
-                        $arrKeys = explode(";", $key);
-                        $arrValues = explode(";", $val);
-                        $arrLine = array_combine($arrKeys, $arrValues);
-                    }
+                    $arrLine = $line;
                     $blnStatus = true;
                     foreach ($arrRequiredFields as $strField) {
                         if (empty($arrLine[$strField])) {

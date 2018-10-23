@@ -1,0 +1,4 @@
+barcode,name,description,brand,size,case_count,attachment_resource
+123456789123,Apple 8,New model,Apple,12,1,https://testcreative.co.uk/wp-content/uploads/2017/10/Test-Logo-Circle-black-transparent.png
+123456789124,Apple X,Last model,Apple,2,2,https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/LaravelLogo.png/1200px-LaravelLogo.png
+123456789125,Apple 7,Old model,,23,3,
