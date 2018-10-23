@@ -82,8 +82,20 @@ class ProductController extends Controller implements RedisInterface
      */
     public function create()
     {
+        $arrThumbnails = array();
+        $attachments=Attachment::where('product_id',0)->where('user_id',Auth::id())->get();
+        if (count($attachments) > 0) {
+            foreach ($attachments as $attachment) {
+                if ($attachment->type == 'image') {
+                    $arrThumbnails[$attachment->id] = Croppa::url('/uploads/' . $attachment->name, 400, 400, ['resize']);
+                } elseif ($attachment->type == 'video') {
+                    $arrThumbnails[$attachment->id] = getVideoThumbnail($attachment->name);
+                }
+            }
+        }
+
         $loadMainJS = true;
-        return view('products.create', compact('loadMainJS'));
+        return view('products.create', compact('loadMainJS','attachments','arrThumbnails'));
     }
 
     /**

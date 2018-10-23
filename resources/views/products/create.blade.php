@@ -47,6 +47,35 @@
 
                 </div>
                 @include('partials.categories')
+                <div class="w3-margin-top w3-margin-bottom">
+
+                    @if(count($attachments)>0)
+                        @foreach($attachments as $attachment)
+                            <div class="attachment" id="attachment_block_{{$attachment->id}}">
+                                @if($attachment->import=='N')
+                                    <img
+                                        src="{{!empty($arrThumbnails[$attachment->id])?$arrThumbnails[$attachment->id]:asset('storage/upload/images/includes/video.png')}}"
+                                        style="width:100%">
+                                @else
+                                    <img
+                                        src="{{$attachment->type=='image'?$attachment->path:asset('storage/upload/images/includes/video.png')}}"
+                                        style="width:100%">
+                                @endif
+                                <button class="btn delete" id="{{$attachment->id}}" data-toggle="modal"
+                                        data-target="#deleteModal_{{$attachment->id}}">X
+                                </button>
+                            </div>
+                            @include('partials.modal_attachment_delete',['attachment'=>$attachment->id,
+                            'action'=>'delete',
+                            'slug'=>'attachment'])
+                        @endforeach
+                    @else
+                        <div class="w3-center">
+                            No attachments found
+                        </div>
+                    @endif
+                    <hr>
+                </div>
                 <div class="col-sm-12">
                     <div class="container w3-margin-top">
                         {!! Form::open(['method'=>'POST','action'=>['AttachmentController@store','userId'=>Auth::id()],'id'=>'uploadForm', 'class'=>'dropzone'])!!}
@@ -89,6 +118,48 @@
                 }
             }
         };
+        //-- Delete attachment
+        $("button[id^='delete_attachment_']").click(function () {
+            var id = $(this).attr('id');
+            var attachment_id = id.replace('delete_attachment_', '');
+            if (id !== 'delete_attachment_category') {
+                var url = '{{ route('delete_attachment_ajax') }}';
+                $.ajax({
+                    method: 'POST',
+                    url: url,
+                    dataType: "json",
+                    data: {
+                        attachment_id: attachment_id,
+                        _token: token
+                    }, beforeSend: function () {
+                        //-- Show loading image while execution of ajax request
+                        $("div#divLoading").addClass('show');
+                    },
+                    success: function (data) {
+                        if (data['result'] === "success") {
+                            new Noty({
+                                type: 'success',
+                                layout: 'topRight',
+                                text: 'Attachment was successfully deleted!'
+                            }).show();
+
+                            //-- Hide visually attachment
+                            $('#attachment_block_' + attachment_id).hide();
+                        } else {
+                            new Noty({
+                                type: 'error',
+                                layout: 'bottomLeft',
+                                text: data['error']
+                            }).show();
+                        }
+
+                        //-- Hide loading image
+                        $("div#divLoading").removeClass('show');
+                    }
+                });
+            }
+
+        });
         function isNumberKey(evt)
         {
             var charCode = (evt.which) ? evt.which : event.keyCode;

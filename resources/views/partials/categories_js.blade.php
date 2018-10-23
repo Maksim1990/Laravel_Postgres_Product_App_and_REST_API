@@ -146,7 +146,6 @@
         var strCategories = oldSelectedCategories + strCategories;
         $('#categories_form').val(strCategories.trim());
         var blnStatus = checkIfAnyResourceAttached();
-        console.log(blnStatus);
         if (blnStatus) {
             this.submit();
         }else{

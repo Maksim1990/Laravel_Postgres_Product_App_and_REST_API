@@ -7,6 +7,7 @@ use App\Config\Config;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 use Croppa;
+use Illuminate\Support\Facades\Route;
 
 class Admin
 {
@@ -19,7 +20,9 @@ class Admin
      */
     public function handle($request, Closure $next)
     {
-        $this->removeDeprecatedAttachments();
+        if(Route::currentRouteName()!=='create'){
+            $this->removeDeprecatedAttachments();
+        }
         if (Auth::check()) {
             return $next($request);
         }
