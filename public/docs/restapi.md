@@ -71,8 +71,11 @@ file
 2) Get specific category
 - ROUTE: **/api/{user_id}/categories/{id}**
 - METHOD: **GET**
+3) Update specific category
+- ROUTE: **/api/{user_id}/categories/{id}**
+- METHOD: **PATCH**
 ![Mockup for feature A](https://github.com/Maksim1990/Laravel_Postgres_Product_App_and_REST_API/blob/master/public/example/API/API10.PNG)
-3) Delete specific category
+4) Delete specific category
 - ROUTE: **/api/{user_id}/categories/{id}**
 - METHOD: **DELETE**
 
