@@ -272,7 +272,7 @@ class ProductRepository
                         ]);
                     }
 
-                    if ($key == (count($categoryData) - 1)) {
+                    //if ($key == (count($categoryData) - 1)) {
                         $categoryLink = ProductCategoryPivot::where('product_id', $product->id)->where('category_id', $categoryItem->id)->first();
                         $maxID = ProductCategoryPivot::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
                         if ($categoryLink === null) {
@@ -282,7 +282,7 @@ class ProductRepository
                                 'category_id' => $categoryItem->id,
                             ]);
                         }
-                    }
+                   // }
                 }
             }
         }
