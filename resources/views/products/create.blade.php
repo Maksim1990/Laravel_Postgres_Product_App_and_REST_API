@@ -84,7 +84,7 @@
                     new Noty({
                         type: 'error',
                         layout: 'bottomLeft',
-                        text: 'There is error happened while uploading file!'
+                        text: response
                     }).show();
                 }
             }

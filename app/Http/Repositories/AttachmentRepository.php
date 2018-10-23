@@ -67,23 +67,29 @@ class AttachmentRepository
         $attachments = Attachment::where('product_id', empty($product_id)?$request->product_id:$product_id)->get();
         if (count($attachments) < Config::ATTACHMENTS_ALLOWED) {
             if (in_array($extension, Config::IMAGES_EXTENSIONS)) {
-                if (!($file->getClientSize() > 21000000)) {
-                    $name = time() . "_" . $file->getClientOriginalName();
-                    $maxID=Attachment::where('id','>',0)->orderBy('id','DESC')->limit(1)->first();
-                    $attachment = Attachment::create([
-                        'id'=>$maxID!=null?$maxID->id+1:1,
-                        'user_id' => Auth::id(),
-                        'product_id' => empty($product_id)?$request->product_id:$product_id,
-                        'name' => $name,
-                        'size' => $file->getClientSize(),
-                        'extension' => $extension,
-                        'path' => Config::UPLOAD_FOLDER . $name
-                    ]);
+                $data = getimagesize($file);
+                $height=$data[1];
+                if($height>100) {
+                    if (!($file->getClientSize() > 21000000)) {
+                        $name = time() . "_" . $file->getClientOriginalName();
+                        $maxID = Attachment::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
+                        $attachment = Attachment::create([
+                            'id' => $maxID != null ? $maxID->id + 1 : 1,
+                            'user_id' => Auth::id(),
+                            'product_id' => empty($product_id) ? $request->product_id : $product_id,
+                            'name' => $name,
+                            'size' => $file->getClientSize(),
+                            'extension' => $extension,
+                            'path' => Config::UPLOAD_FOLDER . $name
+                        ]);
 
-                    //-- Temporary upload for public derictory in order generate thumbnails
-                    $file->move('uploads', $name);
-                } else {
-                    $result = "Max allowed limit for image file is 20 MB!";
+                        //-- Temporary upload for public derictory in order generate thumbnails
+                        $file->move('uploads', $name);
+                    } else {
+                        $result = "Max allowed limit for image file is 20 MB!";
+                    }
+                }else {
+                    $result = "Height of image should not be less than 100px";
                 }
             } elseif (in_array($extension, Config::VIDEO_EXTENSIONS)) {
                 //-- UPLOAD VIDEO CONTENT
