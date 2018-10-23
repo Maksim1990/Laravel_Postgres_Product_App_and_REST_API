@@ -10,6 +10,7 @@ namespace App\Http\Repositories;
 
 use App\Attachment;
 use App\Category;
+use App\CategorySubcategoryPivot;
 use App\Classes\CacheWrapper;
 use App\Config\Config;
 use App\Http\Requests\ProductCreateRequest;
@@ -48,17 +49,19 @@ class ProductRepository
     static public function buildCategoryLabelsArray($product)
     {
         $arrCategories = [];
-        if (!empty($product->categories)) {
-            foreach ($product->categories as $category) {
-                if ($category->parent == 0) {
-                    $arrCategories[] = $category->name;
-                } else {
-                    $parentCategory = Category::find($category->parent);
-                    $arrCategories[] = $parentCategory->name . ":" . $category->name;
+        $categoryLinks=CategorySubcategoryPivot::where('product_id',$product->id)->get();
+        if($categoryLinks!==null){
+            foreach ($categoryLinks as $link){
+                if($link->parent_id>0){
+                    $categoryParent=Category::find($link->parent_id);
+                    $category=Category::find($link->category_id);
+                    $arrCategories[]= $categoryParent->name.":".$category->name;
+                }else{
+                    $category=Category::find($link->category_id);
+                    $arrCategories[]= $category->name;
                 }
             }
         }
-
         return $arrCategories;
     }
 
@@ -66,9 +69,10 @@ class ProductRepository
      * @param $id
      * @return string
      */
-    static public function destroy($id){
+    static public function destroy($id)
+    {
 
-        $result='success';
+        $result = 'success';
         $product = Product::findOrFail($id);
         $categories = $product->categories;
         if (!empty($categories)) {
@@ -92,13 +96,13 @@ class ProductRepository
                     }
                 }
 
-                if(!$attachment->delete()){
-                    $result='Some error happened while deleting attachment';
+                if (!$attachment->delete()) {
+                    $result = 'Some error happened while deleting attachment';
                 }
             }
         }
-        if(!$product->delete()){
-            $result='Some error happened while deleting product';
+        if (!$product->delete()) {
+            $result = 'Some error happened while deleting product';
         }
 
         //-- Reset category list cache
@@ -131,7 +135,8 @@ class ProductRepository
      * @param $product
      * @return array
      */
-    static public function getThumbnails($product){
+    static public function getThumbnails($product)
+    {
         $arrThumbnails = array();
         if ($product != null) {
             if (count($product->attachments) > 0) {
@@ -167,11 +172,23 @@ class ProductRepository
             $arrCategories = explode(";", $linkedCategories);
         }
 
+
         $arrCurrentCategories = [];
-        if (!empty($product->categories)) {
-            foreach ($product->categories as $category) {
-                if ($category->parent == 0) {
-                    $arrCurrentCategories[$category->id] = $category->name;
+        $arrCurrentCategoriesIds = [];
+        $categoryLinks=CategorySubcategoryPivot::where('product_id',$product->id)->get();
+        if($categoryLinks!==null){
+            foreach ($categoryLinks as $link){
+                if($link->parent_id>0){
+                    $categoryParent=Category::find($link->parent_id);
+                    $category=Category::find($link->category_id);
+                    $arrCurrentCategories[]= $categoryParent->name.":".$category->name;
+                    $arrCurrentCategoriesIds['id'][]= $category->id;
+                    $arrCurrentCategoriesIds['parent_id'][]= $categoryParent->id;
+                }else{
+                    $category=Category::find($link->category_id);
+                    $arrCurrentCategories[]= $category->name;
+                    $arrCurrentCategoriesIds['id'][]= $category->id;
+                    $arrCurrentCategoriesIds['parent_id'][]= 0;
                 }
             }
         }
@@ -183,6 +200,10 @@ class ProductRepository
                     unset($arrCategories[$key]);
                     unset($arrCurrentCategories[$id]);
                 } else {
+                    CategorySubcategoryPivot::where('product_id',$product->id)
+                        ->where('parent_id',$arrCurrentCategoriesIds['parent_id'][$id])
+                        ->where('category_id',$arrCurrentCategoriesIds['id'][$id])->delete();
+
                     ProductCategoryPivot::where('category_id', $id)->where('product_id', $product->id)->delete();
                 }
             }
@@ -252,8 +273,8 @@ class ProductRepository
             $categoryData = explode(":", $categoryName);
 
             //-- If try to insert 3rd level or more subcategory than handle it as simple category name
-            if(count($categoryData)>2){
-                $categoryData=[$categoryName];
+            if (count($categoryData) > 2) {
+                $categoryData = [$categoryName];
             }
             foreach ($categoryData as $key => $cat) {
                 $categoryItem = Category::where('name', $cat)->first();
@@ -272,7 +293,7 @@ class ProductRepository
                         ]);
                     }
 
-                    //if ($key == (count($categoryData) - 1)) {
+                    if ($key == (count($categoryData) - 1)) {
                         $categoryLink = ProductCategoryPivot::where('product_id', $product->id)->where('category_id', $categoryItem->id)->first();
                         $maxID = ProductCategoryPivot::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
                         if ($categoryLink === null) {
@@ -282,7 +303,21 @@ class ProductRepository
                                 'category_id' => $categoryItem->id,
                             ]);
                         }
-                   // }
+                    }
+
+                    if ($key == (count($categoryData) - 1)) {
+                        $category = CategorySubcategoryPivot::where('product_id', $product->id)->where('parent_id', $key > 0 ? $parentCategory->id : 0)->where('category_id', $categoryItem->id)->first();
+                        $maxID = CategorySubcategoryPivot::where('id', '>', 0)->orderBy('id', 'DESC')->limit(1)->first();
+                        if ($category === null) {
+                            CategorySubcategoryPivot::create([
+                                'id' => $maxID != null ? $maxID->id + 1 : 1,
+                                'product_id' => $product->id,
+                                'parent_id' => $key > 0 ? $parentCategory->id : 0,
+                                'category_id' => $categoryItem->id,
+                            ]);
+
+                        }
+                    }
                 }
             }
         }

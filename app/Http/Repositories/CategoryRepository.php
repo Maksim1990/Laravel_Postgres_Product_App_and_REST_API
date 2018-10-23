@@ -10,6 +10,7 @@ namespace App\Http\Repositories;
 
 
 use App\Category;
+use App\CategorySubcategoryPivot;
 use App\User;
 use Illuminate\Support\Facades\Cache;
 
@@ -32,11 +33,24 @@ class CategoryRepository
         $arrSubCategories=[];
         if(!empty($categories)){
             foreach ($categories as $category){
-                $subCategory = Category::where('parent',$category->id)->first();
-                $arrSubCategories[$category->id]['name']=$subCategory!==null?$subCategory->name:0;
-                $arrSubCategories[$category->id]['id']=$subCategory!==null?$subCategory->id:0;
+                $arrParent=CategorySubcategoryPivot::where('parent_id',$category->id)->where('parent_id','!=',0)->get();
+                //dd($arrParent);
+                $arrTemp=[];
+                if(count($arrParent)>0){
+
+                    foreach ($arrParent as $parent){
+                        $subCategory=Category::find($parent->category_id);
+                        $arrTemp['name'][]=$subCategory->name;
+                        $arrTemp['id'][]=$subCategory->id;
+                    }
+                    $arrSubCategories[$category->id]['name']=implode(",",array_unique($arrTemp['name']));
+                    $arrSubCategories[$category->id]['id']=$arrTemp['id'];
+                }else{
+                    $arrSubCategories[$category->id]['id']=[];
+                }
             }
         }
+       // dd($arrSubCategories);
         $result=[
             'categories'=>$categories,
             'arrSubCategories'=>$arrSubCategories,

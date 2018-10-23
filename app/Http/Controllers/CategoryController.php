@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Category;
+use App\CategorySubcategoryPivot;
 use App\Http\Repositories\CategoryRepository;
 use App\Interfaces\RedisInterface;
 use App\ProductCategoryPivot;
@@ -68,16 +69,17 @@ class CategoryController extends Controller implements RedisInterface
      */
     public function ajaxDeleteCategories(Request $request)
     {
-        $arrCategoriesToDelete = json_decode($request->arrCategoriesToDelete);
+        $category_id = json_decode($request->category_id);
         $success=true;
 
-        if(!empty($arrCategoriesToDelete)){
-            foreach ($arrCategoriesToDelete as $categorty){
-                ProductCategoryPivot::where('category_id',$categorty)->delete();
-                Category::where('id',$categorty)->delete();
+                CategorySubcategoryPivot::where('parent_id',$category_id)->update([
+                    'parent_id'=>0
+                ]);
+                CategorySubcategoryPivot::where('category_id',$category_id)->delete();
+                ProductCategoryPivot::where('category_id',$category_id)->delete();
+                Category::where('id',$category_id)->delete();
 
-            }
-        }
+
         $result = [
             'success' => $success,
             'error' => '',

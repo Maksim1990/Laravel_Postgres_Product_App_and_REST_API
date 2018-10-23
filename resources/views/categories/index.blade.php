@@ -21,9 +21,9 @@
                                     <tr id="category_item_{{$category->id}}">
                                         <td>{{$category->id}}</td>
                                         <td>{{$category->name}}</td>
-                                        <td>{{!empty($arrSubCategories[$category->id])?$arrSubCategories[$category->id]['name']:"No parent category"}}</td>
+                                        <td>{{!empty($arrSubCategories[$category->id]['name'])?$arrSubCategories[$category->id]['name']:"No subcategory"}}</td>
                                         <td>
-                                            <a href="#" class="btn btn-danger" data-parent="{{!empty($arrSubCategories[$category->id])?$arrSubCategories[$category->id]['id']:0}}"
+                                            <a href="#" class="btn btn-danger"
                                                id="delete_{{$category->id}}"
                                                data-toggle="modal"
                                                data-target="#deleteModal_category">Delete</a>
@@ -62,19 +62,14 @@
         var token = '{{\Illuminate\Support\Facades\Session::token()}}';
         $("button[id^='delete_attachment_']").click(function () {
             var category_id=$('#category_id').val();
-            var parent_id=$('#parent_id').val();
 
-            var arrCategoriesToDelete=[category_id];
-            if(parent_id>0){
-                arrCategoriesToDelete.push(parent_id);
-            }
             var url = '{{ route('delete_categories_ajax') }}';
             $.ajax({
                 method: 'POST',
                 url: url,
                 dataType: "json",
                 data: {
-                    arrCategoriesToDelete: JSON.stringify(arrCategoriesToDelete),
+                    category_id: category_id,
                     _token: token
                 }, beforeSend: function () {
                     //-- Show loading image while execution of ajax request
@@ -85,16 +80,12 @@
                         new Noty({
                             type: 'success',
                             layout: 'topRight',
-                            text: 'Categories and relevant subcategories were deleted!'
+                            text: 'Category was deleted!'
                         }).show();
 
                         //-- Remove category
                         $('#category_item_'+category_id).remove();
 
-                        //-- Check
-                        if(parent_id>0){
-                            $('#category_item_'+parent_id).remove();
-                        }
                     } else {
                         new Noty({
                             type: 'error',
