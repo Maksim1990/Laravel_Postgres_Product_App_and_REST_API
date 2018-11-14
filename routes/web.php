@@ -18,7 +18,7 @@ Route::get('/norights',function(){
     return view('includes.norights');
 });
 
-Route::group(['middleware' => 'admin'], function () {
+Route::group(['middleware' => ['web','auth','admin']], function () {
     Route::resource('/products', 'ProductController');
     Route::resource('/attachment', 'AttachmentController');
     Route::get('/', 'ProductController@index')->name('index');
