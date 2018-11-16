@@ -54,7 +54,7 @@ FFPROBE="/usr/bin/ffprobe"
 ```
 php artisan migrate
 ```
-### 10) Run Symfony built-in development server
+### 10) Run Laravel built-in development server
 ```
 php artisan server
 ```
